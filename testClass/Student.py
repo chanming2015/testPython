@@ -8,6 +8,8 @@ __author__ = 'Xu MaoSen'
 import logging
 logging.basicConfig(level = logging.DEBUG)
 
+import json
+
 from types import MethodType
 
 class Student(object):
@@ -48,3 +50,5 @@ s.set_age('18')
 logging.debug(s.age)
 
 logging.debug(s)
+
+logging.debug(json.dumps(s, default = lambda obj: obj.__dict__))

@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
+encoding//io/file.py=utf-8
+encoding//testClass/Student.py=utf-8
 encoding//testClass/__init__.py=utf-8
 encoding//testClass/mydict.py=utf-8
 encoding//testClass/mydict_test.py=utf-8
-encoding//testClass/student.py=utf-8
