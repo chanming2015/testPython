@@ -1,4 +1,9 @@
 eclipse.preferences.version=1
+encoding//Coroutine/test.py=utf-8
+encoding//Coroutine/test2.py=utf-8
+encoding//Process/process.py=utf-8
+encoding//Process/processPool.py=utf-8
+encoding//WEB/web.py=utf-8
 encoding//io/file.py=utf-8
 encoding//testClass/Student.py=utf-8
 encoding//testClass/__init__.py=utf-8
