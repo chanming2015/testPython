@@ -65,22 +65,21 @@ def select(spec):
             raise TypeError('type should be SpecParam')
         
     query = _db_ctx.session().query(spec.get_mapping_type())
-    if not spec.get_criterions():
-        return query
     
-    criterions = parse_criterions(spec)
-    print criterions
-    return query.filter()
-
-def parse_criterions(spec):
-    results = []
     for index in spec.get_criterions():
         key = index.key
         op = index.op
         value = index.value
-        print key, op, value
-        
-    return results
+        if op == 'eq':
+            query = query.filter(getattr(spec.get_mapping_type(), key) == value)
+        elif op == 'like':
+            query = query.filter(getattr(spec.get_mapping_type(), key).like('%' + value + '%'))
+        elif op == 'in_':
+            query = query.filter(getattr(spec.get_mapping_type(), key).in_(value))
+        else:
+            pass
+    print query
+    return query
 
 @with_session
 def insert(entity):

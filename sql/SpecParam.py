@@ -25,5 +25,14 @@ class SpecParam(object):
         return self.__criterions.values()
     
     def eq(self, key, value):
-        self.__criterions[key] = criterions(key, '==', value)
+        self.__criterions[key] = criterions(key, 'eq', value)
         return self
+    
+    def like(self, key, value):
+        self.__criterions[key] = criterions(key, 'like', value)
+        return self
+    
+    def in_(self, key, *value):
+        self.__criterions[key] = criterions(key, 'in_', value)
+        return self
+    

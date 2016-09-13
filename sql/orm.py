@@ -30,7 +30,9 @@ new_user = User(id='5', username='Bob', password='hehe')
 # db.insert(new_user)
 
 spec = SpecParam(User)
-spec.eq('id', 5).eq('password', 'root')
+# spec.eq('id', '5')
+# spec.like('password', 'B')
+spec.in_('id', 5, 7)
 
 for row in db.select(spec):
-    print row.id
+    print row.id, row.username, row.password
