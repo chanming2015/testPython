@@ -19,20 +19,27 @@ class User(Base):
     __tablename__ = 'test'
 
     # 表的结构:
-    id = Column(String(20), primary_key=True)
+    id = Column(String(20), primary_key = True)
     username = Column(String(20))
     password = Column(String(20))
 
 
 # 创建新User对象:
-new_user = User(id='5', username='Bob', password='hehe')
+new_user = User(id = 51, username = 'Bob', password = 'hehe')
+new_user2 = User(id = 52, username = 'Bob', password = 'hehe')
 
-# db.insert(new_user)
+# db.insert(new_user, new_user2)
 
 spec = SpecParam(User)
-# spec.eq('id', '5')
+spec.ne('id', '5')
 # spec.like('password', 'B')
-spec.in_('id', 5, 7)
-
+# spec.in_('id', 5, 7)
+# spec.is_not_null('id')
+ 
+# spec2 = SpecParam(User)
+# spec2.eq('username', 'admin')
+#  
+# spec.or_(spec2)
+ 
 for row in db.select(spec):
     print row.id, row.username, row.password

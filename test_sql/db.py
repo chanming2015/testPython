@@ -1,18 +1,18 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 ' a test module '
 __author__ = 'Xu MaoSen'
 
 # 导入:
-from sqlalchemy import  create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import threading
 
 # 数据库引擎对象:
 engine = create_engine('mysql://root:458710@127.0.0.1:3306/test')
 # 创建DBSession类型:
-DBSession = sessionmaker(bind=engine)
+DBSession = sessionmaker(bind = engine)
 
 # 持有数据库连接的上下文对象:
 class _DbCtx(threading.local):
@@ -23,9 +23,11 @@ class _DbCtx(threading.local):
         return not self.__session is None
 
     def init(self):
-        self.__session = DBSession(autocommit=True)
+        self.__session = DBSession()
 
-    def cleanup(self):
+    def cleanup(self, should_commit):
+        if should_commit:
+            self.__session.commit()
         self.__session.close()
         self.__session = None
 
@@ -35,60 +37,75 @@ class _DbCtx(threading.local):
 _db_ctx = _DbCtx()
 
 class _SessionCtx(object):
+    
+    def __init__(self, should_commit):
+        self.__should_cleanup = False
+        self.__should_commit = should_commit
+    
     def __enter__(self):
-        self.should_cleanup = False
         if not _db_ctx.is_init():
             _db_ctx.init()
-            self.should_cleanup = True
+            self.__should_cleanup = True
         return self
 
     def __exit__(self, exctype, excvalue, traceback):
-        if self.should_cleanup:
-            _db_ctx.cleanup()
+        if self.__should_cleanup:
+            _db_ctx.cleanup(self.__should_commit)
 
-def session():
-    return _SessionCtx()
+def session(should_commit):
+    return _SessionCtx(should_commit)
 
 import functools
 from SpecParam import SpecParam
 
-def with_session(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kw):
-        with session():
-            return func(*args, **kw)
-    return wrapper
+def with_session(should_commit = False):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kw):
+            with session(should_commit):
+                return func(*args, **kw)
+        return wrapper
+    return decorator
 
-@with_session
+@with_session()
 def select(spec):
     if not isinstance(spec, SpecParam):
             raise TypeError('type should be SpecParam')
         
     query = _db_ctx.session().query(spec.get_mapping_type())
     
-    for index in spec.get_criterions():
+    # process and criterions
+    for index in spec.get_and_criterions():
         key = index.key
         op = index.op
         value = index.value
         if op == 'eq':
             query = query.filter(getattr(spec.get_mapping_type(), key) == value)
+        elif op == 'ne':
+            query = query.filter(getattr(spec.get_mapping_type(), key) != value)
         elif op == 'like':
             query = query.filter(getattr(spec.get_mapping_type(), key).like('%' + value + '%'))
         elif op == 'in_':
             query = query.filter(getattr(spec.get_mapping_type(), key).in_(value))
+        elif op == 'not_in':
+            query = query.filter(~getattr(spec.get_mapping_type(), key).in_(value))
         else:
             pass
+    
+    # process or criterions if have
+#    for index in spec.get_or_specs():
+#        query = query.filter(or_(index))
     print query
     return query
 
-@with_session
-def insert(entity):
-    return _db_ctx.session().add(entity)
+@with_session(True)
+def insert(*entitys):
+    return _db_ctx.session().add_all(entitys)
 
-@with_session
+@with_session(True)
 def delete(entity):
-    pass
+    return _db_ctx.session().delete(entity)
 
-@with_session
+@with_session(True)
 def update(entity):
-    pass
+    return _db_ctx.session().add(entity)
