@@ -15,27 +15,36 @@ def check_key(func):
     @functools.wraps(func)
     def wrapper(*args, **kw):
         if not isinstance(args[1], str):
-            raise TypeError('type should be str')
+            raise TypeError('key should be str')
         return func(*args, **kw)
     return wrapper
 
 class SpecParam(object):
     
-    def __init__(self, mapping_type):
-        if not isinstance(mapping_type, (DeclarativeMeta,)):
-            raise TypeError('type should be sqlalchemy.ext.declarative.api.DeclarativeMeta')
+    def __init__(self, mapping_type, *query_types):
+        if not isinstance(mapping_type, (DeclarativeMeta)):
+            raise TypeError('mapping_type should be sqlalchemy.ext.declarative.api.DeclarativeMeta')
+        
+        for qt in query_types:
+            if not isinstance(qt, str):
+                raise TypeError('key should be str')
+            
+        self.__query_types = query_types
         self.__mapping_type = mapping_type
         self.__and_criterions = {}
-        self.__or_specs = []
+#         self.__or_specs = []
         
+    def get_query_types(self):
+        return self.__query_types
+    
     def get_mapping_type(self):
         return self.__mapping_type
     
     def get_and_criterions(self):
         return self.__and_criterions.values()
     
-    def get_or_specs(self):
-        return self.__or_specs
+#     def get_or_specs(self):
+#         return self.__or_specs
     
     @check_key
     def eq(self, key, value):
@@ -47,6 +56,7 @@ class SpecParam(object):
         self.__and_criterions[key] = criterions(key, 'ne', value)
         return self
     
+    @check_key
     def like(self, key, value):
         self.__and_criterions[key] = criterions(key, 'like', value)
         return self
@@ -71,7 +81,7 @@ class SpecParam(object):
         self.__and_criterions[key] = criterions(key, 'ne', None)
         return self
     
-    def or_(self, other_spec):
-        if not isinstance(other_spec, SpecParam):
-            raise TypeError('type should be SpecParam')
-        self.__or_specs.append(other_spec)
+#     def or_(self, other_spec):
+#         if not isinstance(other_spec, SpecParam):
+#             raise TypeError('type should be SpecParam')
+#         self.__or_specs.append(other_spec)
