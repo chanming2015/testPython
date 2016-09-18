@@ -72,24 +72,26 @@ def select(spec):
     if not isinstance(spec, SpecParam):
             raise TypeError('type should be SpecParam')
     
-    query_types = []
-    
     if len(spec.get_query_types()) > 0:
+        query_types = []
         for key in spec.get_query_types():
             query_types.append(getattr(spec.get_mapping_type(), key))
+        
+        size = len(query_types)  
+        if size == 1:
+            query = _db_ctx.session().query(query_types[0])
+        elif size == 2:
+            query = _db_ctx.session().query(query_types[0], query_types[1])
+        elif size == 3:
+            query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2])
+        elif size == 4:
+            query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2], query_types[3])
+        elif size == 5:
+            query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2], query_types[3], query_types[4])
+        else:
+            pass
     else:
-        query_types.append(spec.get_mapping_type())
-    
-    if len(query_types) == 1:
-        query = _db_ctx.session().query(query_types[0])
-    elif len(query_types) == 2:
-        query = _db_ctx.session().query(query_types[0], query_types[1])
-    elif len(query_types) == 3:
-        query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2])
-    elif len(query_types) == 4:
-        query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2], query_types[3])
-    elif len(query_types) == 5:
-        query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2], query_types[3], query_types[4])
+        query = _db_ctx.session().query(spec.get_mapping_type())
     
     # process and criterions
     for index in spec.get_and_criterions():
@@ -109,9 +111,6 @@ def select(spec):
         else:
             pass
     
-    # process or criterions if have
-#    for index in spec.get_or_specs():
-#        query = query.filter(or_(index))
     print query
     return query
 
