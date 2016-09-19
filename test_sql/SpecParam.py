@@ -25,27 +25,58 @@ class SpecParam(object):
         if not isinstance(mapping_type, (DeclarativeMeta)):
             raise TypeError('mapping_type should be sqlalchemy.ext.declarative.api.DeclarativeMeta')
         
-        for qt in query_types:
-            if not isinstance(qt, str):
-                raise TypeError('key should be str')
-            
-        self.__query_types = query_types
         self.__mapping_type = mapping_type
+        self.__query_types = []
+        if len(query_types) > 0:
+            for key in query_types:
+                if not isinstance(key, str):
+                    raise TypeError('key should be str')
+                self.__query_types.append(getattr(mapping_type, key))
+        else:
+            self.__query_types.append(mapping_type)
+        
+        
         self.__and_criterions = {}
-#         self.__or_specs = []
+        self.__or_spec = None
+        self.__order_by = None
         
     def get_query_types(self):
         return self.__query_types
     
-    def get_mapping_type(self):
-        return self.__mapping_type
-    
     def get_and_criterions(self):
-        return self.__and_criterions.values()
+        criterions = []
+        for index in self.__and_criterions.values():
+            key = index.key
+            op = index.op
+            value = index.value
+            if op == 'eq':
+                criterions.append(getattr(self.__mapping_type, key) == value)
+            elif op == 'ne':
+                criterions.append(getattr(self.__mapping_type, key) != value)
+            elif op == 'like':
+                criterions.append(getattr(self.__mapping_type, key).like('%' + value + '%'))
+            elif op == 'in_':
+                criterions.append(getattr(self.__mapping_type, key).in_(value))
+            elif op == 'not_in':
+                criterions.append(~getattr(self.__mapping_type, key).in_(value))
+            else:
+                pass
     
-#     def get_or_specs(self):
-#         return self.__or_specs
+        return criterions
+
+    def get_or_criterions(self):
+        criterions = []
+        if self.__or_spec:
+            criterions = self.__or_spec.get_and_criterions()
+        return criterions
     
+    def get_order_by(self):
+        keys = []
+        if self.__order_by:
+            for index in self.__order_by:
+                keys.append(getattr(self.__mapping_type, index))
+        return keys
+           
     @check_key
     def eq(self, key, value):
         self.__and_criterions[key] = criterions(key, 'eq', value)
@@ -81,7 +112,12 @@ class SpecParam(object):
         self.__and_criterions[key] = criterions(key, 'ne', None)
         return self
     
-#     def or_(self, other_spec):
-#         if not isinstance(other_spec, SpecParam):
-#             raise TypeError('type should be SpecParam')
-#         self.__or_specs.append(other_spec)
+    def or_(self):
+        if not self.__or_spec:
+            self.__or_spec = SpecParam(self.__mapping_type)
+        return self.__or_spec
+    
+    @check_key
+    def order_by(self, *key):
+        self.__order_by = key
+        return self

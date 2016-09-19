@@ -30,14 +30,11 @@ class User(Base):
 # db.insert(new_user, new_user2)
 
 spec = SpecParam(User, 'id', 'username')
-spec.ne('id', '5').like('username', 'B')
+# spec.ne('id', '5').or_().eq('username', 'Bob').eq('id', '50')
+# spec.or_().eq('password', 'hehe')
 # spec.in_('id', 5, 7)
 # spec.is_not_null('id')
+spec.order_by('id', 'username')
  
-# spec2 = SpecParam(User)
-# spec2.eq('username', 'admin')
-#  
-# spec.or_(spec2)
- 
-for row in db.select(spec):
+for row in db.select(spec, 3, 5):
     print row.id, row.username

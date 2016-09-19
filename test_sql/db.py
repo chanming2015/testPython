@@ -5,7 +5,7 @@
 __author__ = 'Xu MaoSen'
 
 # 导入:
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 import threading
 
@@ -68,49 +68,30 @@ def with_session(should_commit = False):
     return decorator
 
 @with_session()
-def select(spec):
+def select(spec, limit = None, offset = None):
     if not isinstance(spec, SpecParam):
             raise TypeError('type should be SpecParam')
     
-    if len(spec.get_query_types()) > 0:
-        query_types = []
-        for key in spec.get_query_types():
-            query_types.append(getattr(spec.get_mapping_type(), key))
+    query = _db_ctx.session().query(*spec.get_query_types())
+    
+    and_criterions = spec.get_and_criterions()
+    if len(and_criterions) > 0:
+        query = query.filter(*and_criterions)
         
-        size = len(query_types)  
-        if size == 1:
-            query = _db_ctx.session().query(query_types[0])
-        elif size == 2:
-            query = _db_ctx.session().query(query_types[0], query_types[1])
-        elif size == 3:
-            query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2])
-        elif size == 4:
-            query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2], query_types[3])
-        elif size == 5:
-            query = _db_ctx.session().query(query_types[0], query_types[1], query_types[2], query_types[3], query_types[4])
-        else:
-            pass
-    else:
-        query = _db_ctx.session().query(spec.get_mapping_type())
+    or_criterions = spec.get_or_criterions()
+    if len(or_criterions) > 0:
+        query = query.filter(or_(*or_criterions))
     
-    # process and criterions
-    for index in spec.get_and_criterions():
-        key = index.key
-        op = index.op
-        value = index.value
-        if op == 'eq':
-            query = query.filter(getattr(spec.get_mapping_type(), key) == value)
-        elif op == 'ne':
-            query = query.filter(getattr(spec.get_mapping_type(), key) != value)
-        elif op == 'like':
-            query = query.filter(getattr(spec.get_mapping_type(), key).like('%' + value + '%'))
-        elif op == 'in_':
-            query = query.filter(getattr(spec.get_mapping_type(), key).in_(value))
-        elif op == 'not_in':
-            query = query.filter(~getattr(spec.get_mapping_type(), key).in_(value))
-        else:
-            pass
+    order_by_key = spec.get_order_by()
+    if len(order_by_key) > 0:
+        query = query.order_by(*spec.get_order_by())
     
+    if isinstance(limit, int):
+        query = query.limit(limit)
+        
+    if isinstance(offset, int):
+        query = query.offset(offset)
+        
     print query
     return query
 
