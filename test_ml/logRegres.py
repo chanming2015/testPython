@@ -41,9 +41,8 @@ def stoGradAscent(dataMatrix, classLabels, numIter=150):
             del(dataIndex[randIndex])
     return weights 
 
-def plotBestFit(weights):
+def plotBestFit(weights, dataMat, labelMat):
     import matplotlib.pyplot as plt
-    dataMat, labelMat = loadDataSet()
     dataArr = array(dataMat)
     n = shape(dataArr)[0]
     xcord1 = []
@@ -71,6 +70,6 @@ def plotBestFit(weights):
 dataMat, labelMat = loadDataSet()
 # weights = gradAscent(dataMat, labelMat).getA()
 weights = stoGradAscent(array(dataMat), labelMat)
-plotBestFit(weights)
+plotBestFit(weights, dataMat, labelMat)
 
 
