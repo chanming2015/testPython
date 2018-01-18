@@ -20,8 +20,6 @@ def takeOneCity(values):
         return cityMap(values[0], values[1], values[2], values[3])
     else: return cityMap(values[0], values[1], '0.0', '0.0')
     
-gprovince = None
-city = None
 def mapLine(line):
     values = line.split('\t')
     cityMapClass = None
