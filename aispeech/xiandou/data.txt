@@ -1,0 +1,126 @@
+2021042200000260	翻译大全	always	Translation	Translation	Translation_FreeText	[{"Language":"#目标语言#","Content":"#内容#"}]	
+2018091800000014	新版计算器	always	Chat	Calculator	Chat_Inquire		
+2018071900000052	汇率	always	Chat	Calculator	Chat_Inquire		
+2019030700000674	天琴单位换算	always	Chat	Calculator	Chat_Inquire		
+2018050400000026	闲聊	always	Chat	Chat	Chat_Inquire		
+2018050400000027	百科	always	Chat	Chat	Chat_Inquire		
+2019031900001235	亲戚关系计算	always	Calculator	Calculator	Calculator_Inquire		
+1900060100000094	笑话	always	Joke	Joke	Joke_Inquire		
+2018061400000001	新版诗词	#intent# equal 查询诗词信息 and #查询对象# equal 作者	Poem	Poem	Poem_AuthorInquire	[{"Title":"$extra.title$","Author":"$extra.author$"}]	
+		#intent# equal 查询诗句 and #操作# exist			Poem_SolitaireInquire		
+		#intent# exist			Poem_RandomInquire		
+2018061300000070	新版日历	always	Calender	Chat	Chat_Inquire		
+2019031900001236	节假日查询	always	Calender	Chat	Chat_Inquire		
+2018061500000019	新版股票	always	Stock	Stock	Stock_InquireQuote	[{"Name":"$extra.name$","Code":"$extra.code$"}]	
+2019031900001270	星座运势	always	Constellation	Constellation	Constellation_Inquire		
+2021041900000172	仙豆播控	#intent# equal 打开多媒体 and #音源# equal 音乐		Music	Music_Open	[{"Source":[{"expression":"#task# equal 启动和退出 and #音源# in 在线音乐 网络电台","value":"Online"},{"expression":"#task# equal 启动和退出 and #音源# equal 本地音乐","value":"Local"},{"expression":"#task# equal 启动和退出 and #音源# equal 蓝牙音乐","value":"BT"},{"expression":"#task# equal 启动和退出 and #音源# equal USB音乐","value":"USB"},{"expression":"#task# equal 播控 and #音源# equal 音乐","value":"Music"},{"expression":"#task# equal 播控 and #音源# equal 在线音乐","value":"OnlineMusic"},{"expression":"#task# equal 播控 and #音源# equal 本地音乐","value":"LocalMusic"},{"expression":"#task# equal 播控 and #音源# equal USB音乐","value":"USBMusic"},{"expression":"#task# equal 播控 and #音源# equal 蓝牙音乐","value":"BTMusic"},{"expression":"#task# equal 播控 and #音源# equal 视频","value":"Video"},{"expression":"#task# equal 播控 and #音源# equal 在线视频","value":"OnlineVideo"},{"expression":"#task# equal 播控 and #音源# equal 本地视频","value":"LocalVideo"},{"expression":"#task# equal 播控 and #音源# equal USB视频","value":"USBVideo"},{"expression":"#task# equal 播控 and #音源# equal 音频","value":"Radio"},{"expression":"#task# equal 播控 and #音源# equal 网络电台","value":"NetRadio"},{"expression":"#task# equal 播控 and #音源# equal 收音机","value":"LocalRadio"}],"Mode":[{"expression":"#task# equal 播控 and #intent# equal 单曲循环","value":"SingleCycle"},{"expression":"#task# equal 播控 and #intent# equal 顺序播放","value":"InOrder"},{"expression":"#task# equal 播控 and #intent# equal 随机播放","value":"Random"}],"Canonical":[{"expression":"#task# equal 快进快退 and #intent# in 快进 快退 设置进度","value":"#时间#","type":"time_secnds"}],"Step":[{"expression":"#task# equal 快进快退 and #intent# in 快进 快退","value":"#时间_origin#"}],"Progress":[{"expression":"#task# equal 快进快退 and #intent# equal 设置进度","value":"#时间_origin#"}],"Speed_Rate":[{"expression":"#task# equal 快进快退 and #intent# equal 设置倍率","value":"#倍数#"}]}]	[]
+		#intent# equal 打开多媒体 and #音源# in 在线音乐 本地音乐 蓝牙音乐 USB音乐			Music_Open		
+		#intent# equal 关闭多媒体 and #音源# equal 音乐			Music_Close		[]
+		#intent# equal 关闭多媒体 and #音源# in 在线音乐 本地音乐 蓝牙音乐 USB音乐			Music_Close		
+		#intent# equal 播放多媒体 and #音源# equal 音乐			Music_PlayBySource		[]
+		#intent# equal 播放多媒体 and #音源# in 在线音乐 本地音乐 蓝牙音乐 USB音乐			Music_PlayBySource		
+		#intent# equal 音乐查询 and #查询对象# equal 歌名			Music_InquireCurrentSong		
+		#intent# equal 音乐查询 and #查询对象# equal 歌手			Music_InquireCurrentArtist		
+		#intent# equal 音乐查询			Music_InquireCurrentContent		
+		#intent# equal 打开多媒体 and #音源# in 音频 网络电台		NetRadio	NetRadio_Open		
+		#intent# equal 关闭多媒体 and #音源# in 音频 网络电台			NetRadio_Close		
+		#intent# equal 播放多媒体 and #音源# in 音频 网络电台			NetRadio_PlayBySoure		
+		#intent# equal 网络电台查询 and #查询对象# equal 集数			NetRadio_InquireCurrentIndex		
+		#intent# equal 网络电台查询			NetRadio_InquireCurrentContent		
+		#intent# equal 播放多媒体 and #音源# equal 收音机		Radio	Radio_PlayRadio		
+		#intent# equal 打开多媒体 and #音源# equal 收音机			Radio_OpenRadio		
+		#intent# equal 关闭多媒体 and #音源# equal 收音机			Radio_CloseRadio		
+		#intent# equal 播放多媒体		PlayControl	PlayControl_Play		
+		#intent# equal 继续播放多媒体			PlayControl_ResumePlay		
+		#intent# equal 播控 and #播控# equal 暂停			PlayControl_Pause		
+		#intent# equal 播控 and #播控# equal 上一个			PlayControl_Prev		
+		#intent# equal 播控 and #播控# equal 下一个			PlayControl_Next		
+		#intent# equal 播控 and #播控# equal 停止			PlayControl_Stop		
+		#intent# equal 收藏 and #收藏动作# equal 取消			PlayControl_RemoveFavorite		
+		#intent# equal 收藏 and #收藏动作# equal 播放			PlayControl_PlayFavorite		
+		#intent# equal 收藏			PlayControl_AddFavorite		
+		#intent# in 单曲循环 顺序播放 随机播放			PlayControl_SetPlayMode		
+		#intent# equal 快进			PlayControl_FastForward		
+		#intent# equal 快退			PlayControl_FastRewind		
+		#intent# equal 设置进度			PlayControl_SetProgress		
+		#intent# equal 设置倍率			PlayControl_SetRate		
+		#intent# equal 播放列表 and #列表操作# equal 打开			PlayControl_OpenPlayList		
+		#intent# equal 播放列表 and #列表操作# equal 关闭			PlayControl_ClosePlayList		
+		#intent# equal 收藏列表 and #列表操作# equal 打开			PlayControl_OpenFavoriteList		
+		#intent# equal 收藏列表 and #列表操作# equal 关闭			PlayControl_CloseFavoriteList		
+		#intent# equal 内容查询			PlayControl_InquireCurentContent		
+2021041900000173	仙豆音乐	#intent# equal 播放音乐		Music	Music_Play	[{"Style":[{"expression":"#音乐风格# exist","value":"#音乐风格#"}],"Version":[{"expression":"#音乐类型# exist and #音乐风格# miss","value":"#音乐类型#"}],"Language":[{"expression":"#语种# exist and #榜单# miss","value":"#语种#"}],"Artist":[{"expression":"always","value":"#歌手名#","type":"symbol"}],"Song":"#歌曲名#","Program":"#专辑名#","Ranking_List":"#榜单#"}]	
+		#intent# equal 播放控制			Music_DownloadSong		
+2021040200000068	仙豆电台	#task# equal 点播电台		NetRadio	NetRadio_Paly	[{"Genre":"#类别#","Artist":"#艺人#","Program":"#栏目#","Index":"#序号#","Station_Name":"#本地电台#"}]	
+		#task# equal 点播本地电台		Radio	Radio_SetStationbyName		
+2021042100000220	仙豆收音机	#intent# equal 播放波段 and #电台对象# in FM AM		Radio	Radio_PlayRadio	[{"Band_Name":"#电台对象_origin#","Band_Type":"#电台对象#"}]	
+		#intent# equal 调频调幅 and #调频数值# exist			Radio_SetStationbyFrequencyFM		[{"Band_Name":"#电台对象_origin#","Frequency_String_FM":"#调频数值#"}]
+		#intent# equal 调频调幅 and #调幅数值# exist			Radio_SetStationbyFrequencyAM		[{"Band_Name":"#电台对象_origin#","Frequency_String_AM":"#调幅数值#"}]
+2021042600000031	仙豆地图	#task# equal 导航 and #intent# equal 导航指令		Navi	Navi_Open	[{"POI":[{"expression":"#task# equal 导航 and #intent# equal 导航 and #终点名称# exist","value":"#终点名称#"},{"expression":"#终点修饰# exist","value":"#终点修饰#"},{"expression":"#task# equal 查询路程 and #poi名称# exist","value":"#poi名称#"},{"expression":"#task# equal 常用地址 and #poi名称# exist","value":"#poi名称#"}],"Category":[{"expression":"#终点类型# exist","value":"#终点类型#"},{"expression":"#poi类型# exist","value":"#poi类型#"}],"POI_StopBy":"#途经点名称#","Index":[{"expression":"#task# equal 途经点设置 and #序列号# exist","value":"#序列号#"}],"MapMode":[{"expression":"#task# equal 地图操作 and #intent# equal 地图操作 and #对象# in 2D视图 3D视图","value":"#对象#"},{"expression":"#task# equal 地图操作 and #intent# equal 北向上","value":"正北向上"},{"expression":"#task# equal 地图操作 and #intent# equal 车头向上","value":"车头向上"}],"Canonical":[{"expression":"#task# equal 地图操作 and #intent# equal 地图操作 and #对象# equal 2D视图","value":"MapMode_2D_HeadUp"},{"expression":"#task# equal 地图操作 and #intent# equal 地图操作 and #对象# equal 3D视图","value":"MapMode_3D_HeadUp"},{"expression":"#task# equal 地图操作 and #intent# equal 北向上","value":"MapMode_NorthUp"},{"expression":"#task# equal 地图操作 and #intent# equal 车头向上","value":"MapMode_HeadUp"}],"StartPOI":[{"expression":"#task# equal 查询路况 and #起点名称# exist","value":"#起点名称#"},{"expression":"#task# equal 查询路况 and #intent# equal 沿途路况","value":"Current_Location"}],"EndPOI":[{"expression":"#task# equal 查询路况 and #终点名称# exist","value":"#终点名称#"}],"Location":[{"expression":"#task# equal 查询路况 and #poi名称# exist","value":"#poi名称#"}],"Route":[{"expression":"#task# equal 导航路线规划 and #序列号# exist","value":"#序列号#"}],"Strategy":[{"expression":"#路线偏好# equal 躲避拥堵","value":"Clear"},{"expression":"#路线偏好# equal 不走高速","value":"NoHighway"},{"expression":"#路线偏好# equal 费用少","value":"Free"},{"expression":"#路线偏好# equal 高速优先","value":"HighwayFirst"},{"expression":"#路线偏好# equal 躲避拥堵&少收费","value":"Clear_Free"},{"expression":"#路线偏好# equal 躲避拥堵&不走高速","value":"Clear_NoHighway"},{"expression":"#路线偏好# equal 躲避拥堵&避免收费&不走高速","value":"Clear_Free_NoHighway"},{"expression":"#路线偏好# equal 躲避拥堵&高速优先","value":"Clear_HighwayFirst"},{"expression":"#路线偏好# equal 避免收费&不走高速","value":"Free_NoHighway"}],"NewPOI":[{"expression":"#task# equal 导航 and #intent# equal 纠正目的地 and #终点名称# exist","value":"#终点名称#"}]}]	
+		#task# equal 导航 and #intent# equal 开始导航			Navi_SpeechGuidanceOn		
+		#task# equal 导航 and #intent# equal 导航			Navi_SetDestination		
+		#task# equal 导航 and #intent# equal 继续导航			Navi_Continue		
+		#task# equal 周边搜索 and #intent# equal 周边搜索 and #终点修饰# equal 终点			Navi_SetDestinationByAroundDest		
+		#task# equal 周边搜索 and #intent# equal 周边搜索 and #终点修饰# equal 家			Navi_SetDestinationByNearbyHome		
+		#task# equal 周边搜索 and #intent# equal 周边搜索 and #终点修饰# equal 公司			Navi_SetDestinationByNearbyOffice		
+		#task# equal 周边搜索 and #intent# equal 周边搜索 and #终点修饰# exist and #终点类型# exist			Navi_SetDestinationByPOI		
+		#task# equal 周边搜索 and #intent# equal 周边搜索 and #终点类型# exist			Navi_SetDestinationByNearby		
+		#task# equal 沿途搜索 and #intent# equal 沿途搜索 and #poi类型# exist			Navi_SetDestinationByAlongRoute		
+		#task# equal 途经点设置 and #intent# equal 增加途经点 and #途经点名称# exist			Navi_AddStopBy		
+		#task# equal 途经点设置 and #intent# equal 删除途经点			Navi_RemoveStopBy		
+		#task# equal 常用地址 and #intent# equal 导航到常用地址 and #对象# equal 家			Navi_GoHome		
+		#task# equal 常用地址 and #intent# equal 导航到常用地址 and #对象# equal 公司			Navi_GoOffice		
+		#task# equal 地图操作 and #intent# equal 打开路况			Navi_TrafficMapOn		
+		#task# equal 地图操作 and #intent# equal 关闭路况			Navi_TrafficMapOff		
+		#task# equal 地图操作 and #intent# equal 地图操作 and #对象# equal 地图 and #操作# equal 打开			Navi_ShowMap		
+		#task# equal 地图操作 and #intent# equal 地图操作 and #对象# equal 地图 and #操作# equal 关闭			Navi_CloseMap		
+		#task# equal 地图操作 and #intent# equal 地图操作 and #对象# equal 导航 and #操作# equal 取消			Navi_SpeechGuidanceOff		
+		#task# equal 地图操作 and #intent# equal 地图操作 and #对象# in 2D视图 3D视图			Navi_MapMode		
+		#task# equal 地图操作 and #intent# in 北向上 车头向上			Navi_MapMode		
+		#task# equal 地图操作 and #intent# equal 放大地图			Navi_MapZoomIn		
+		#task# equal 地图操作 and #intent# equal 缩小地图			Navi_MapZoomOut		
+		#task# equal 查询路程 and #intent# equal 查询路程 and #起点名称# equal 当前位置 and #poi名称# exist			Navi_InquireDurationToLocation		
+		#task# equal 查询路程 and #intent# equal 查询路程 and #起点名称# equal 当前位置			Navi_InquireDistanceToDestination		
+		#task# equal 查询路程 and #intent# equal 查询路程 and #__tgt__# equal 剩余时间			Navi_InquireDurationToDestination		
+		#task# equal 查询路程 and #intent# equal 查询路程 and #poi名称# exist			Navi_InquireDistanceToLocation		
+		#task# equal 查询定位 and #intent# equal 查询定位			Navi_InquireCurrentLocation		
+		#task# equal 限速查询 and #intent# equal 限速查询			Navi_InquireSpeedLimit		
+		#task# equal 查询路况 and #intent# equal 沿途路况 and #终点名称# exist			Navi_InquireTrafficOfRoute		
+		#task# equal 查询路况 and #intent# equal 查询路况 and #poi名称# exist			Navi_InquireTraffic		
+		#task# equal 查询路况 and #intent# equal 前方路况			Navi_InquireTraffic		
+		#task# equal 收藏 and #intent# equal 收藏当前位置			Navi_CollectCurrentLocation		
+		#task# equal 收藏 and #intent# equal 收藏目的地			Navi_CollectDestination		
+		#task# equal 收藏 and #intent# equal 取消收藏目的地			Navi_CancelCollectDestination		
+		#task# equal 地图操作 and #intent# equal 地图操作 and #操作# equal 显示 and #对象# equal 全览图			Navi_ShowOverview		
+		#task# equal 地图操作 and #intent# equal 地图操作 and #操作# equal 退出 and #对象# equal 全览图			Navi_QuitOverview		
+		#task# equal 导航路线规划 and #intent# equal 导航路线规划 and #操作# equal 切换 and #对象# equal 路线			Navi_ChangeRoute		
+		#task# equal 导航路线规划 and #intent# equal 导航路线规划 and #路线偏好# exist			Navi_SetRouteStrategy		
+		#task# equal 导航路线规划 and #intent# equal 导航路线规划 and #道路对象# equal 桥上			Navi_ChangeRouteUpbridge		
+		#task# equal 导航路线规划 and #intent# equal 导航路线规划 and #道路对象# equal 桥下			Navi_ChangeRouteDownbridge		
+		#task# equal 导航路线规划 and #intent# equal 导航路线规划 and #道路对象# equal 主路			Navi_ChangeRouteMainRoad		
+		#task# equal 导航路线规划 and #intent# equal 导航路线规划 and #道路对象# equal 辅路			Navi_ChangeRouteSideRoad		
+		#task# equal 常用地址 and #intent# equal 设置常用地址 and #对象# equal 家			Navi_SetHome		
+		#task# equal 常用地址 and #intent# equal 设置常用地址 and #对象# equal 公司			Navi_SetOffice		
+		#task# equal 导航 and #intent# equal 纠正目的地 and #终点名称# exist			Navi_AlterIntention		
+		#task# equal 地图操作 and #intent# equal 探路模式			Navi_ExplorationMode		
+		#task# equal 地图操作 and #intent# equal 回自车位			Navi_BackToLocation		
+2021042800000070	仙豆电话	#task# equal 电话 and #intent# equal 进入电话		Phone	Phone_ShowMenu	[{"Contact_Name":"#联系人#","Number_String":"#号码#","Number_ChunkToSubstitute":"#旧号码#","Number_NewChunk":"#新号码#","Yellow_Page_Name":"#黄页号码_origin#","Yellow_Page_Number":"#黄页号码#","Type":[{"expression":"#通话记录# equal 通话记录 and #通话记录操作# equal 关掉","value":""},{"expression":"#通话记录# equal 通话记录","value":"Recent"},{"expression":"#通话记录# equal 未接电话","value":"Missed"},{"expression":"#通话记录# equal 已拨电话","value":"Dialed"},{"expression":"#通话记录# equal 已接电话","value":"Received"},{"expression":"#号码段位置# equal 开头","value":"Prefix"},{"expression":"#号码段位置# equal 结尾","value":"Suffix"}]}]	
+		#task# equal 电话 and #intent# equal 拨打电话 and #联系人# exist			Phone_DialByContact		
+		#task# equal 电话 and #intent# equal 纠正号码			Phone_NumberChunkSubstitute		
+		#task# equal 电话 and #intent# equal 提供联系人 and #号码# exist			Phone_DialNumberSlot		
+		#task# equal 电话 and #intent# equal sys.电话选择			Phone_DialNumberByPartial		
+		#task# equal 电话 and #intent# equal 拨打黄页号码			Phone_DialYellowPage		
+		#task# equal 电话 and #intent# equal 拨打电话 and #号码# exist			Phone_DialNumber		
+		#task# equal 电话 and #intent# equal 客服中心			Phone_DialCallCenter		
+		#task# equal 电话 and #intent# equal 紧急救援			Phone_DialEmergency		
+		#task# equal 通讯录 and #intent# equal 打开通讯录			Phone_OpenPhoneBook		
+		#task# equal 电话 and #intent# equal 查询信息			Phone_OpenPhoneBook		
+		#task# equal 通讯录 and #intent# equal 关闭通讯录			Phone_ClosePhoneBook		
+		#task# equal 通话记录 and #intent# equal 通话记录操作 and #通话记录操作# equal 关掉			Phone_ClosePhone		
+		#task# equal 通话记录 and #intent# equal 通话记录操作			Phone_OpenPhone		
+		#task# equal 电话 and #intent# equal 重拨电话			Phone_Redial		
+		#task# equal 电话 and #intent# equal 回拨			Phone_Dialback		
+		#task# equal 电话 and #intent# equal 接听电话			Phone_IncomingCallAnswer		
+		#task# equal 电话 and #intent# equal 挂断电话			Phone_IncomingCallReject		
+		#task# equal 电话 and #intent# equal 拨打			Phone_DialOut		
+		#task# equal 电话 and #intent# equal 取消拨打			Phone_CancelDialing		
