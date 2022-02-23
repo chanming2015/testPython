@@ -10,7 +10,9 @@ import HTMLTestRunner
 import unittest
 import requests
 import sys, os
+import json
 from basetest import SkillBaseTest, catch_exception
+from __builtin__ import Exception
 reload(sys)
 sys.setdefaultencoding('utf-8')
 from multiprocessing import Pool
@@ -28,27 +30,32 @@ class LyraCarCtlSkillTest(SkillBaseTest):
         self.user_cookies = user_cookies
 
     @catch_exception(exception_switch=_exception_switch)
-    def execute_requests_cmd(self, input_word, user_cookies, contextId=None):
-        resp_json = self.execute_requests(input_word, user_cookies, contextId)
-        self.assertIsNotNone(resp_json['data']['dm'].get('command'))
-        self.assertEqual(resp_json['data']['dm']['nlg'], '')
+    def process_condition(self, condition, resp_json):
+        t = condition.get('type')
+        if 'tts' == t:
+            tts = condition.get('tts')
+            self.assertEqual(tts, resp_json['data']['dm']['nlg'])
+        elif 'command' == t:
+            command = condition.get('command')
+            print 'command:%s' % json.dumps(resp_json['data']['dm'].get('command'), ensure_ascii=False)
+            self.assertEqual(command, resp_json['data']['dm'].get('command'))
+        else:
+            raise Exception('unkonwn type: %s' % t)
     
     @catch_exception(exception_switch=_exception_switch)
-    def execute_requests_nlg(self, input_word, user_cookies, contextId=None):
-        resp_json = self.execute_requests(input_word, user_cookies, contextId)
-        self.assertIsNone(resp_json['data']['dm'].get('command'))
-        self.assertNotEqual(resp_json['data']['dm']['nlg'], '')
+    def process_input_word(self, input_word):
+        index = input_word.find(',')
+        resp_json = self.execute_requests(input_word[:index], self.user_cookies, None)
+        if input_word.find('"') > 0:
+            input_word = input_word[index + 2:-2].replace('""', '"')
+        else:
+            input_word = input_word[index + 1:]
+        for condition in json.loads(input_word):
+            self.process_condition(condition, resp_json)
     
-    # 说法集测试
+    # 测试集测试，单轮
     def test_statement_run(self):
-        for input_word in open(self.filepath).readlines():
-            if input_word.find('TTS') > 0:
-                input_word = input_word[0:input_word.find('==》')]
-                for strinw in input_word.split('/'):
-                    self.execute_requests_nlg(strinw, self.user_cookies)
-            else:
-                for strinw in input_word.split('/'):
-                    self.execute_requests_cmd(strinw, self.user_cookies)
+        map(self.process_input_word, open(self.filepath).readlines())
         
 def suite(filepath, user_cookies):
     test_suite = unittest.TestSuite()  # 创建一个测试集合
@@ -77,8 +84,8 @@ def exec_runner(result_path, filepath, user_cookies):
        
 if __name__ == '__main__':
     
-    # 分割说法集文件，避免文件太大,默认五千行一个文件
-    split(u'全部说法集.txt', 100)
+    # 分割测试集文件，避免文件太大
+    split(u'测试集.csv', 100)
     # 设置技能超时时间（秒）
     skill_timeout = 5
     userName = ''
@@ -89,7 +96,7 @@ if __name__ == '__main__':
     resp = requests.post(login_url, json=body)
     if resp.status_code == 200 and resp.json().get('code') == '0':
         user_cookies = resp.cookies
-        pool = Pool(4)
+        pool = Pool(8)
         for dirpath, dirnames, filenames in os.walk('./'):
             for filepath in filter(lambda f:f.startswith('part'), filenames):
                 result_path = u'产品测试报告-%s.html' % filepath
