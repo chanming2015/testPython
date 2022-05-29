@@ -9,13 +9,11 @@ Created on 2019年3月2日
 import HTMLTestRunner
 import unittest
 import requests
-import sys, os
+import os
 import json
+from functools import reduce
 from basetest import SkillBaseTest, catch_exception
-from __builtin__ import Exception
-reload(sys)
-sys.setdefaultencoding('utf-8')
-from multiprocessing import Pool
+from multiprocessing.pool import Pool
 
 # 车载控制技能测试    
 class LyraCarCtlSkillTest(SkillBaseTest):
@@ -30,19 +28,6 @@ class LyraCarCtlSkillTest(SkillBaseTest):
         self.user_cookies = user_cookies
 
     @catch_exception(exception_switch=_exception_switch)
-    def process_condition(self, condition, resp_json):
-        t = condition.get('type')
-        if 'tts' == t:
-            tts = condition.get('tts')
-            self.assertEqual(tts, resp_json['data']['dm']['nlg'])
-        elif 'command' == t:
-            command = condition.get('command')
-            print 'command:%s' % json.dumps(resp_json['data']['dm'].get('command'), ensure_ascii=False)
-            self.assertEqual(command, resp_json['data']['dm'].get('command'))
-        else:
-            raise Exception('unkonwn type: %s' % t)
-    
-    @catch_exception(exception_switch=_exception_switch)
     def process_input_word(self, input_word):
         index = input_word.find(',')
         resp_json = self.execute_requests(input_word[:index], self.user_cookies, None)
@@ -50,12 +35,20 @@ class LyraCarCtlSkillTest(SkillBaseTest):
             input_word = input_word[index + 2:-2].replace('""', '"')
         else:
             input_word = input_word[index + 1:]
-        for condition in json.loads(input_word):
-            self.process_condition(condition, resp_json)
-    
+        
+#         f = open(self.filepath + ".txt", "a")
+#         f.write(json.dumps(resp_json['data']['dm'], ensure_ascii=False))
+#         f.write('\n')
+        
+        expect = json.loads(input_word)
+        for k in resp_json['data']['dm'].keys():
+            if k not in ["nlg", "speak", "intentName", "taskId", "intentId"]:
+                self.assertEqual(expect.get(k), resp_json['data']['dm'].get(k))
+        
     # 测试集测试，单轮
     def test_statement_run(self):
-        map(self.process_input_word, open(self.filepath).readlines())
+        for input_word in open(self.filepath, encoding='utf-8').readlines():
+            self.process_input_word(input_word)
         
 def suite(filepath, user_cookies):
     test_suite = unittest.TestSuite()  # 创建一个测试集合
@@ -67,18 +60,18 @@ def suite(filepath, user_cookies):
        
 def split(fromfile, chunksize):
     partnum = 0
-    str_lines = open(fromfile).readlines()
+    str_lines = open(fromfile, encoding='utf-8').readlines()
     for i in range(0, len(str_lines), chunksize):
         partnum += 1
         filename = 'part%04d' % partnum
-        fileobj = open(filename, 'wb')  # make partfile
+        fileobj = open(filename, 'w', encoding='utf-8')  # make partfile
         fileobj.write(reduce(lambda a, b:a + b, str_lines[i:i + chunksize]))  # write data into partfile
         fileobj.close()
     return partnum
 
 def exec_runner(result_path, filepath, user_cookies):
-    print result_path
-    fp = open(result_path, 'wb')  # 打开一个保存结果的html文件
+    print(result_path)
+    fp = open(result_path, 'w', encoding='utf-8')  # 打开一个保存结果的html文件
     runner = HTMLTestRunner.HTMLTestRunner(stream=fp, title='产品测试报告', description='测试情况')
     runner.run(suite(filepath, user_cookies))
        
@@ -96,7 +89,7 @@ if __name__ == '__main__':
     resp = requests.post(login_url, json=body)
     if resp.status_code == 200 and resp.json().get('code') == '0':
         user_cookies = resp.cookies
-        pool = Pool(8)
+        pool = Pool(4)
         for dirpath, dirnames, filenames in os.walk('./'):
             for filepath in filter(lambda f:f.startswith('part'), filenames):
                 result_path = u'产品测试报告-%s.html' % filepath
@@ -104,4 +97,4 @@ if __name__ == '__main__':
         pool.close()
         pool.join()
     else:
-        print '请检查　userName和password'
+        print('请检查　userName和password')
