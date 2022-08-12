@@ -12,7 +12,7 @@ import json
 import time
        
 if __name__ == '__main__':
-#     productIds = ['tryProductId', '279609734', '279606354', '278582558', '279610639', '279610836']
+    productIds = ['tryProductId', '279609734', '279606354', '278582558', '279610639', '279610836', '279609887', '279611361', '279610994', '279611322']
     productIds = ['tryProductId']
     skillIds = ['2022011900000133']
     j = json.loads(open(u'C:/Users/Administrator/Desktop/长城车控技能配置.json', encoding='utf-8').read())

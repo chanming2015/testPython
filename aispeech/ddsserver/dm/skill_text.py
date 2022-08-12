@@ -11,6 +11,7 @@ import unittest
 import requests
 import os
 import json
+import uuid
 from functools import reduce
 from basetest import SkillBaseTest, catch_exception
 from multiprocessing.pool import Pool
@@ -18,7 +19,7 @@ from multiprocessing.pool import Pool
 # 车载控制技能测试    
 class LyraCarCtlSkillTest(SkillBaseTest):
     _skill_id = 2022011900000133
-    _skill_version = 'latest'
+    _skill_version = '6'
     # 开启异常捕获
     _exception_switch = True
     
@@ -28,15 +29,17 @@ class LyraCarCtlSkillTest(SkillBaseTest):
         self.user_cookies = user_cookies
 
     @catch_exception(exception_switch=_exception_switch)
-    def process_input_word(self, input_word):
+    def process_input_word(self, input_word, contextId):
         index = input_word.find(',')
-        resp_json = self.execute_requests(input_word[:index], self.user_cookies, None)
+        resp_json = self.execute_requests(input_word[:index], self.user_cookies, contextId)
         if input_word.find('"') > 0:
             input_word = input_word[index + 2:-2].replace('""', '"')
         else:
             input_word = input_word[index + 1:]
         
 #         f = open(self.filepath + ".txt", "a")
+# #         if len(resp_json['data']['dm'].get('nlg')) > 0:
+# #             f.write(resp_json['data']['dm'].get('input'))
 #         f.write(json.dumps(resp_json['data']['dm'], ensure_ascii=False))
 #         f.write('\n')
         
@@ -48,12 +51,21 @@ class LyraCarCtlSkillTest(SkillBaseTest):
     # 测试集测试，单轮
     def test_statement_run(self):
         for input_word in open(self.filepath, encoding='utf-8').readlines():
-            self.process_input_word(input_word)
+            self.process_input_word(input_word, None)
+
+    # 测试集测试，多轮
+    def test_statement_run_multi(self):
+        contextId = uuid.uuid4()
+        for input_word in open(self.filepath, encoding='utf-8').readlines():
+            if len(input_word) < 3:
+                contextId = uuid.uuid4()
+            else:
+                self.process_input_word(input_word, contextId)
         
 def suite(filepath, user_cookies):
     test_suite = unittest.TestSuite()  # 创建一个测试集合
     all_tests = [
-                LyraCarCtlSkillTest('test_statement_run', filepath, user_cookies)
+                LyraCarCtlSkillTest('test_statement_run_multi', filepath, user_cookies)
                  ]
     test_suite.addTests(all_tests)  # 测试套件中添加测试用例
     return test_suite
@@ -78,7 +90,7 @@ def exec_runner(result_path, filepath, user_cookies):
 if __name__ == '__main__':
     
     # 分割测试集文件，避免文件太大
-    split(u'测试集.csv', 100)
+    split(u'多轮车控测试集.csv', 100)
     # 设置技能超时时间（秒）
     skill_timeout = 5
     userName = ''

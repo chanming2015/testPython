@@ -24,7 +24,7 @@ def catch_exception(**kwds):
                 try:
                     result = fn(*args)
                 except Exception as e:
-                    print('Exception Happened: %s' % e )
+                    print('Exception Happened: %s' % e)
                 return result
             else:
                 return fn(*args);
@@ -121,6 +121,7 @@ class SkillBaseTest(BaseTest):
         result = resp.json()
         print('dm_result:%s' % json.dumps(result, ensure_ascii=False))
         print('semantics:%s' % json.dumps(result['data']['nlu'].get('semantics', {}), ensure_ascii=False))
+        print('dm:%s' % json.dumps(result['data']['dm'], ensure_ascii=False))
         print('nlg:%s' % result['data']['dm'].get('nlg'))
         self.assertIsNone(result['data'].get('error'))
         time.sleep(0.5)
