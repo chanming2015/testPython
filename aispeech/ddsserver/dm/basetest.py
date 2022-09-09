@@ -124,7 +124,7 @@ class SkillBaseTest(BaseTest):
         print('dm:%s' % json.dumps(result['data']['dm'], ensure_ascii=False))
         print('nlg:%s' % result['data']['dm'].get('nlg'))
         self.assertIsNone(result['data'].get('error'))
-        time.sleep(0.5)
+        time.sleep(0.2)
         return result
 
 class ProductBaseTest(BaseTest):
@@ -155,5 +155,5 @@ class ProductBaseTest(BaseTest):
         print('semantics:%s' % json.dumps(result['data']['nlu'].get('semantics', {}), ensure_ascii=False))
         print('nlg:%s' % result['data']['dm']['nlg'])
         self.assertIsNone(result['data'].get('error'))
-        time.sleep(0.5)
+        time.sleep(0.2)
         return result

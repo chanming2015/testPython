@@ -19,6 +19,7 @@ from multiprocessing.pool import Pool
 # 车载控制技能测试    
 class LyraCarCtlSkillTest(SkillBaseTest):
     _skill_id = 2022011900000133
+#     _skill_version = 'latest'
     _skill_version = '6'
     # 开启异常捕获
     _exception_switch = True
@@ -44,9 +45,14 @@ class LyraCarCtlSkillTest(SkillBaseTest):
 #         f.write('\n')
         
         expect = json.loads(input_word)
-        for k in resp_json['data']['dm'].keys():
-            if k not in ["nlg", "speak", "intentName", "taskId", "intentId"]:
-                self.assertEqual(expect.get(k), resp_json['data']['dm'].get(k))
+        if len(expect.get('nlg')) > 0 and len(resp_json['data']['dm'].get('nlg')) > 0:
+            for k in resp_json['data']['dm'].keys():
+                if k not in ["nlg", "speak", "runSequence", "command", "intentName", "taskId", "intentId"]:
+                    self.assertEqual(expect.get(k), resp_json['data']['dm'].get(k)) 
+        else:
+            for k in resp_json['data']['dm'].keys():
+                if k not in ["nlg", "speak", "intentName", "taskId", "intentId"]:
+                    self.assertEqual(expect.get(k), resp_json['data']['dm'].get(k))
         
     # 测试集测试，单轮
     def test_statement_run(self):
@@ -90,7 +96,7 @@ def exec_runner(result_path, filepath, user_cookies):
 if __name__ == '__main__':
     
     # 分割测试集文件，避免文件太大
-    split(u'多轮车控测试集.csv', 100)
+    split(u'多轮车控测试集.csv', 150)
     # 设置技能超时时间（秒）
     skill_timeout = 5
     userName = ''
@@ -101,7 +107,7 @@ if __name__ == '__main__':
     resp = requests.post(login_url, json=body)
     if resp.status_code == 200 and resp.json().get('code') == '0':
         user_cookies = resp.cookies
-        pool = Pool(4)
+        pool = Pool(2)
         for dirpath, dirnames, filenames in os.walk('./'):
             for filepath in filter(lambda f:f.startswith('part'), filenames):
                 result_path = u'产品测试报告-%s.html' % filepath
