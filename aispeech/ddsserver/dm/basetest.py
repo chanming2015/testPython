@@ -102,7 +102,7 @@ class SkillBaseTest(BaseTest):
     def tearDown(self):
         print('%s %s End\n' % (get_time(), self.__str__()))
     def setUp(self):
-        print(get_time(), '%s Start skillId: %d' % (self.__str__(), self._skill_id))
+        print(get_time(), '%s Start skillId: %d versionId: %s' % (self.__str__(), self._skill_id, self._skill_version))
     @classmethod
     def tearDownClass(self):
         print('SkillTest Finished')
@@ -153,7 +153,8 @@ class ProductBaseTest(BaseTest):
         result = resp.json()
         print('dm_result:%s' % json.dumps(result, ensure_ascii=False))
         print('semantics:%s' % json.dumps(result['data']['nlu'].get('semantics', {}), ensure_ascii=False))
-        print('nlg:%s' % result['data']['dm']['nlg'])
+        print('dm:%s' % json.dumps(result['data']['dm'], ensure_ascii=False))
+        print('nlg:%s' % result['data']['dm'].get('nlg'))
         self.assertIsNone(result['data'].get('error'))
         time.sleep(0.2)
         return result
