@@ -15,7 +15,7 @@ import requests
 PRODUCT_ID = "279606354"
 # 设置分支
 BRANCH = "prod_p11"
-# 设置授权APIKEY
+# 设置授权APIKEY；DUI开放平台-授权管理
 APIKEY = ""
 # 参数非空校验
 if PRODUCT_ID == "" or BRANCH == "" or APIKEY == "":
