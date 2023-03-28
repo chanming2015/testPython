@@ -89,6 +89,8 @@ async def do_test():
         for datas in lines[1:]:
             # 获取测试用例
             refText = datas[index_refText]
+            if type(refText) != str or refText.strip() == "":
+                continue
             # print("测试用例：%s" % refText)
             if is_single_round_test:
                 # 单轮测试用例，每次更新sessionId
@@ -103,29 +105,52 @@ async def do_test():
             result = json.loads(resp)
 
             datas[index_reality] = resp
-            # 比较技能、任务、意图、语义、command、nlg
-            if type(datas[index_skill]) == str and datas[index_skill].strip() != "" and datas[index_skill] != result["skill"]:
-                datas[index_error_message] = "技能错误，实际返回结果：%s" % result["skill"]
-                continue
-            if type(datas[index_task]) == str and datas[index_task].strip() != "" and datas[index_task] != result["dm"]["task"]:
-                datas[index_error_message] = "任务错误，实际返回结果：%s" % result["dm"]["task"]
-                continue
-            if type(datas[index_intent]) == str and datas[index_intent].strip() != "" and datas[index_intent] != result["dm"]["intentName"]:
-                datas[index_error_message] = "意图错误，实际返回结果：%s" % result["dm"]["intentName"]
-                continue
+            # 比较技能
+            if type(datas[index_skill]) == str and datas[index_skill].strip() != "":
+                if datas[index_skill] != result["skill"]:
+                    datas[index_error_message] = "技能错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_skill], result["skill"])
+                    continue
+            else:
+                if result["skill"] != "":
+                    datas[index_error_message] = "技能错误，预期返回结果：无，实际返回结果：%s" % result["skill"]
+                    continue
+            # 比较任务
+            if type(datas[index_task]) == str and datas[index_task].strip() != "":
+                if datas[index_task] != result["dm"]["task"]:
+                    datas[index_error_message] = "任务错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_task], result["dm"]["task"])
+                    continue
+            else:
+                if result["dm"]["task"] != "":
+                    datas[index_error_message] = "任务错误，预期返回结果：无，实际返回结果：%s" % result["dm"]["task"]
+                    continue
+            # 比较意图
+            if type(datas[index_intent]) == str and datas[index_intent].strip() != "":
+                if datas[index_intent] != result["dm"]["intentName"]:
+                    datas[index_error_message] = "意图错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_intent], result["dm"]["intentName"])
+                    continue
+            else:
+                if result["dm"]["intentName"] != "":
+                    datas[index_error_message] = "意图错误，预期返回结果：无，实际返回结果：%s" % result["dm"]["intentName"]
+                    continue
+            # 比较语义
             if type(datas[index_nlu]) == str and datas[index_nlu].strip() != "":
                 if result.get("nlu") is None:
-                    datas[index_error_message] = "语义错误，实际返回结果：无"
+                    datas[index_error_message] = "语义错误，预期返回结果：有，实际返回结果：无"
                     continue
                 reality_nlu = parse_reality_nlu(result["nlu"])
                 for kv_str in datas[index_nlu].strip().split("\n"):
                     kvs = kv_str.split("=")
                     if kvs[1] != reality_nlu.get(kvs[0]):
-                        datas[index_error_message] = "语义错误，无法匹配：%s，实际返回结果：%s" % (kv_str, json.dumps(reality_nlu, ensure_ascii=False))
+                        datas[index_error_message] = "语义错误，预期返回结果：%s，实际返回结果：%s" % (kv_str, "%s=%s" % (kvs[0], reality_nlu.get(kvs[0])))
                         break
+            else:
+                if result.get("nlu") is not None:
+                    datas[index_error_message] = "语义错误，预期返回结果：无，实际返回结果：有"
+                    continue
+            # 比较command
             if type(datas[index_command]) == str and datas[index_command].strip() != "":
                 if result["dm"].get("command") is None:
-                    datas[index_error_message] = "command错误，实际返回结果：无"
+                    datas[index_error_message] = "command错误，预期返回结果：有，实际返回结果：无"
                     continue
                 reality_command = result["dm"]["command"]
                 for kv_str in datas[index_command].strip().split("\n"):
@@ -140,15 +165,20 @@ async def do_test():
                     else:
                         reality_command_value = reality_command.get(kvs[0])
                     if kvs[1] != reality_command_value:
-                        datas[index_error_message] = "command错误，无法匹配：%s，实际返回结果：%s" % (kv_str, json.dumps(reality_command, ensure_ascii=False))
+                        datas[index_error_message] = "command错误，预期返回结果：%s，实际返回结果：%s" % (kv_str, "%s=%s" % (kvs[0], reality_command_value))
                         break
+            else:
+                if result["dm"].get("command") is not None:
+                    datas[index_error_message] = "command错误，预期返回结果：无，实际返回结果：有"
+                    continue
+            # 比较nlg
             if type(datas[index_nlg]) == str and datas[index_nlg].strip() != "":
                 if result["dm"].get("nlg") is None or result["dm"]["nlg"] == "":
-                    datas[index_error_message] = "nlg错误，实际返回结果：无"
+                    datas[index_error_message] = "nlg错误，预期返回结果：有，实际返回结果：无"
                     continue
             else:
                 if result["dm"].get("nlg") is not None and result["dm"]["nlg"] != "":
-                    datas[index_error_message] = "nlg错误，实际返回结果：%s" % result["dm"]["nlg"]
+                    datas[index_error_message] = "nlg错误，预期返回结果：无，实际返回结果：有"
                     continue
 
 
