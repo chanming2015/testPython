@@ -8,6 +8,7 @@ Created on 2023-03-25
 """
 import asyncio
 import json
+import time
 from uuid import uuid4
 
 import pandas as pd
@@ -16,7 +17,7 @@ import websockets
 # 设置产品ID
 PRODUCT_ID = "279606354"
 # 设置分支
-BRANCH = "prod_p11"
+BRANCH = "car_ctl_beta_test"
 # 设置授权APIKEY；DUI开放平台-授权管理
 APIKEY = ""
 # True：单轮测试；False：多轮测试
@@ -31,30 +32,61 @@ if PRODUCT_ID == "" or BRANCH == "" or APIKEY == "":
 SERVER_URL = "wss://dds.dui.ai/dds/v3/%s?serviceType=websocket&productId=%s&apikey=%s&deviceName=carCtlDmTestAutoTest&communicationType=fullDuplex" % (BRANCH, PRODUCT_ID, APIKEY)
 # 读取Excel文件测试数据
 file_name = "车控测试集.xlsx"
-sheet_name = "车控测试集"
+sheet_name = "单轮车控测试集"
 lines = pd.read_excel(file_name, sheet_name=sheet_name, header=None).values.tolist()
 file_head = lines[0]
 
 # 定义测试数据列索引
 index_refText = file_head.index("测试用例")
+# 期望值数据列
 index_skill = file_head.index("技能")
 index_task = file_head.index("任务")
 index_intent = file_head.index("意图")
 index_nlu = file_head.index("语义")
 index_command = file_head.index("command")
 index_nlg = file_head.index("nlg")
+# 比较错误提示
 index_error_message = file_head.index("错误提示")
-index_reality = file_head.index("实际结果")
+# 实际值数据列
+index_reality_skill = file_head.index("实际技能")
+index_reality_task = file_head.index("实际任务")
+index_reality_intent = file_head.index("实际意图")
+index_reality_nlu = file_head.index("实际语义")
+index_reality_command = file_head.index("实际command")
+index_reality_nlg = file_head.index("实际nlg")
+index_reality_result = file_head.index("实际结果")
 
 
 # 解析实际语义函数
 def parse_reality_nlu(nlu):
     reality_nlu_map = {}
-    for slot in nlu["semantics"]["request"]["slots"]:
-        reality_nlu_map[slot["name"]] = slot["value"]
-        if slot.get("rawvalue") is not None:
-            reality_nlu_map[slot["name"] + "_raw"] = slot["rawvalue"]
+    if nlu.get("semantics") is not None:
+        for slot in nlu["semantics"]["request"]["slots"]:
+            reality_nlu_map[slot["name"]] = slot["value"]
+            if slot.get("rawvalue") is not None:
+                reality_nlu_map[slot["name"] + "_raw"] = slot["rawvalue"]
     return reality_nlu_map
+
+
+# 格式化实际语义，换行显示
+def format_reality_nlu(nlu):
+    reality_nlu = []
+    if nlu.get("semantics") is not None:
+        for slot in nlu["semantics"]["request"]["slots"]:
+            if "intent" != slot["name"]:
+                reality_nlu.append(slot["name"] + "=" + slot["value"])
+                if slot.get("rawvalue") is not None:
+                    reality_nlu.append(slot["name"] + "_raw=" + slot["rawvalue"])
+    return "\n".join(reality_nlu)
+
+
+# 格式化实际command，换行显示
+def format_reality_command(command):
+    reality_command = ["api=" + command["api"]]
+    if command.get("param") is not None:
+        for k, v in command["param"].items():
+            reality_command.append("param." + k + "=" + v)
+    return "\n".join(reality_command)
 
 
 async def textRequest(ws, refText, sessionId=None):
@@ -82,9 +114,10 @@ async def textRequest(ws, refText, sessionId=None):
 async def do_test():
     session_id = uuid4().hex
     # 打印webSocket连接地址
+    print("start time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     print("webSocket连接地址：%s" % SERVER_URL)
     # 创建webSocket连接
-    async with websockets.connect(SERVER_URL) as websocket:
+    async with websockets.connect(SERVER_URL, ping_interval=None, ping_timeout=None) as websocket:
         # 循环测试数据
         for datas in lines[1:]:
             # 获取测试用例
@@ -100,41 +133,65 @@ async def do_test():
                 if refText is None or refText == "" or type(refText) != str:
                     session_id = uuid4().hex
                     continue
-            resp = await textRequest(websocket, refText, session_id)
-            # 解析测试返回结果
-            result = json.loads(resp)
 
-            datas[index_reality] = resp
+            if type(datas[index_reality_result]) == str and datas[index_reality_result].strip().startswith("{"):
+                resp = datas[index_reality_result]
+            else:
+                resp = await textRequest(websocket, refText, session_id)
+            # 解析测试返回结果
+            datas[index_reality_result] = resp
+            try:
+                result = json.loads(resp)
+            except Exception as e:
+                datas[index_error_message] = "返回结果不是json格式"
+                continue
+
+            if result.get("skill") is not None:
+                datas[index_reality_skill] = result.get("skill")
+            if result["dm"].get("task") is not None:
+                datas[index_reality_task] = result["dm"].get("task")
+            if result["dm"].get("intentName") is not None:
+                datas[index_reality_intent] = result["dm"].get("intentName")
+            if result.get("nlu", {}).get('semantics') is not None:
+                datas[index_reality_nlu] = format_reality_nlu(result["nlu"])
+            if result["dm"].get("command") is not None:
+                datas[index_reality_command] = format_reality_command(result["dm"]["command"])
+            if result["dm"].get("nlg") is not None and result["dm"]["nlg"] != "":
+                datas[index_reality_nlg] = result["dm"]["nlg"]
+
             # 比较技能
             if type(datas[index_skill]) == str and datas[index_skill].strip() != "":
-                if datas[index_skill] != result["skill"]:
-                    datas[index_error_message] = "技能错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_skill], result["skill"])
+                if datas[index_skill] != result.get("skill"):
+                    datas[index_error_message] = "技能错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_skill], result.get("skill"))
                     continue
             else:
-                if result["skill"] != "":
-                    datas[index_error_message] = "技能错误，预期返回结果：无，实际返回结果：%s" % result["skill"]
+                if result.get("skill") is not None:
+                    datas[index_error_message] = "技能错误，预期返回结果：无，实际返回结果：%s" % result.get("skill")
                     continue
+
             # 比较任务
             if type(datas[index_task]) == str and datas[index_task].strip() != "":
-                if datas[index_task] != result["dm"]["task"]:
-                    datas[index_error_message] = "任务错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_task], result["dm"]["task"])
+                if datas[index_task] != result["dm"].get("task"):
+                    datas[index_error_message] = "任务错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_task], result["dm"].get("task"))
                     continue
             else:
-                if result["dm"]["task"] != "":
-                    datas[index_error_message] = "任务错误，预期返回结果：无，实际返回结果：%s" % result["dm"]["task"]
+                if result["dm"].get("task") is not None:
+                    datas[index_error_message] = "任务错误，预期返回结果：无，实际返回结果：%s" % result["dm"].get("task")
                     continue
+
             # 比较意图
             if type(datas[index_intent]) == str and datas[index_intent].strip() != "":
-                if datas[index_intent] != result["dm"]["intentName"]:
-                    datas[index_error_message] = "意图错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_intent], result["dm"]["intentName"])
+                if datas[index_intent] != result["dm"].get("intentName"):
+                    datas[index_error_message] = "意图错误，预期返回结果：%s，实际返回结果：%s" % (datas[index_intent], result["dm"].get("intentName"))
                     continue
-            else:
-                if result["dm"]["intentName"] != "":
-                    datas[index_error_message] = "意图错误，预期返回结果：无，实际返回结果：%s" % result["dm"]["intentName"]
-                    continue
+            # else:
+            #     if result["dm"].get("intentName") is not None:
+            #         datas[index_error_message] = "意图错误，预期返回结果：无，实际返回结果：%s" % result["dm"].get("intentName")
+            #         continue
+
             # 比较语义
             if type(datas[index_nlu]) == str and datas[index_nlu].strip() != "":
-                if result.get("nlu") is None:
+                if result.get("nlu", {}).get('semantics') is None:
                     datas[index_error_message] = "语义错误，预期返回结果：有，实际返回结果：无"
                     continue
                 reality_nlu = parse_reality_nlu(result["nlu"])
@@ -144,9 +201,10 @@ async def do_test():
                         datas[index_error_message] = "语义错误，预期返回结果：%s，实际返回结果：%s" % (kv_str, "%s=%s" % (kvs[0], reality_nlu.get(kvs[0])))
                         break
             else:
-                if result.get("nlu") is not None:
+                if result.get("nlu", {}).get('semantics') is not None:
                     datas[index_error_message] = "语义错误，预期返回结果：无，实际返回结果：有"
                     continue
+
             # 比较command
             if type(datas[index_command]) == str and datas[index_command].strip() != "":
                 if result["dm"].get("command") is None:
@@ -171,6 +229,7 @@ async def do_test():
                 if result["dm"].get("command") is not None:
                     datas[index_error_message] = "command错误，预期返回结果：无，实际返回结果：有"
                     continue
+
             # 比较nlg
             if type(datas[index_nlg]) == str and datas[index_nlg].strip() != "":
                 if result["dm"].get("nlg") is None or result["dm"]["nlg"] == "":
@@ -186,5 +245,6 @@ asyncio.get_event_loop().run_until_complete(do_test())
 
 # 回写数据结果到Excel文件
 df = pd.DataFrame(lines[1:], columns=file_head)
-df.to_excel("测试结果-" + file_name, sheet_name="%s-%s-%s" % (sheet_name, PRODUCT_ID, BRANCH), index=False, header=True)
+df.to_excel("测试结果-" + file_name, sheet_name="%s-%s" % (PRODUCT_ID, BRANCH), index=False, header=True)
+print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 print("测试完成！")
