@@ -86,6 +86,7 @@ def format_reality_command_inspire(inspire):
 
 
 async def textRequest(ws, refText, sessionId=None):
+    time.sleep(0.2)
     # 构造请求参数
     content = {
         "topic": 'nlu.input.text',
@@ -138,16 +139,20 @@ async def do_test():
         for datas in lines[1:]:
             # 获取测试用例
             refText = datas[index_refText]
-            # print("测试用例：%s" % refText)
+            
+            # 遇到空白行，表示一轮测试结束，下一轮测试开始（使用新的sessionId）
+            if refText is None or refText == "" or type(refText) != str:
+                session_id = uuid4().hex
+                continue
+            
             if is_single_round_test:
                 # 单轮测试用例，每次更新sessionId
                 session_id = uuid4().hex
+            
+            if type(datas[index_reality]) is str and datas[index_reality].strip().startswith("{"):
+                resp = datas[index_reality]
             else:
-                # 多轮测试用例，遇到空白行，表示一轮测试结束，下一轮测试开始（使用新的sessionId）
-                if refText is None or refText == "" or type(refText) != str:
-                    session_id = uuid4().hex
-                    continue
-            resp = await textRequest(websocket, refText, session_id)
+                resp = await textRequest(websocket, refText, session_id)
             # 解析测试返回结果
             result = json.loads(resp)
 
@@ -155,21 +160,25 @@ async def do_test():
             datas[index_reality] = resp
             if result.get("skill") is not None:
                 datas[index_skill] = result["skill"]
-            if result["dm"].get("task") is not None:
-                datas[index_task] = result["dm"]["task"]
-            if result["dm"].get("intentName") is not None:
-                datas[index_intent] = result["dm"]["intentName"]
-            if result.get("nlu") is not None and result["nlu"].get("semantics") is not None:
-                datas[index_nlu] = format_reality_nlu(result["nlu"])
-            if result["dm"].get("command") is not None:
-                datas[index_command] = format_reality_command(result["dm"]["command"])
-            elif result["dm"].get("inspire") is not None:
-                datas[index_command] = format_reality_command_inspire(result["dm"]["inspire"])
-            if result["dm"].get("nlg") is not None:
-                datas[index_nlg] = result["dm"]["nlg"]
+            if result.get("dm") is not None:
+                if result["dm"].get("task") is not None:
+                    datas[index_task] = result["dm"]["task"]
+                if result["dm"].get("intentName") is not None:
+                    datas[index_intent] = result["dm"]["intentName"]
+                if result.get("nlu") is not None and result["nlu"].get("semantics") is not None:
+                    datas[index_nlu] = format_reality_nlu(result["nlu"])
+                if result["dm"].get("command") is not None:
+                    datas[index_command] = format_reality_command(result["dm"]["command"])
+                elif result["dm"].get("inspire") is not None:
+                    datas[index_command] = format_reality_command_inspire(result["dm"]["inspire"])
+                if result["dm"].get("nlg") is not None:
+                    datas[index_nlg] = result["dm"]["nlg"]
 
 
-asyncio.get_event_loop().run_until_complete(do_test())
+try:
+    asyncio.get_event_loop().run_until_complete(do_test())
+except Exception as e:
+    print(e)
 
 # 回写数据结果到Excel文件
 df = pd.DataFrame(lines[1:], columns=file_head)
