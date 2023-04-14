@@ -14,6 +14,8 @@ from uuid import uuid4
 import pandas as pd
 import websockets
 
+from base import format_reality_nlu, format_reality_command, format_reality_command_inspire, textRequest
+
 # 设置产品ID
 PRODUCT_ID = "279606354"
 # 设置分支
@@ -45,85 +47,6 @@ index_nlu = file_head.index("实际语义")
 index_command = file_head.index("实际command")
 index_nlg = file_head.index("实际nlg")
 index_reality = file_head.index("实际结果")
-
-str_split_line = "--------------------"
-
-
-# 格式化实际语义，换行显示
-def format_reality_nlu(nlu):
-    reality_nlu = []
-    for slot in nlu["semantics"]["request"]["slots"]:
-        if "intent" == slot["name"]:
-            reality_nlu.append(str_split_line)
-        else:
-            reality_nlu.append(slot["name"] + "=" + slot["value"])
-            if slot.get("rawvalue") is not None:
-                reality_nlu.append(slot["name"] + "_raw=" + slot["rawvalue"])
-    if len(reality_nlu) > 0 and str_split_line == reality_nlu[0]:
-        reality_nlu = reality_nlu[1:]
-    return "\n".join(reality_nlu)
-
-
-# 格式化实际command，换行显示
-def format_reality_command(command):
-    reality_command = ["api=" + command["api"]]
-    if command.get("param") is not None:
-        for k, v in command["param"].items():
-            reality_command.append("param." + k + "=" + v)
-    return "\n".join(reality_command)
-
-
-# 格式化实际inspire command，换行显示
-def format_reality_command_inspire(inspire):
-    reality_command = []
-    for ins in inspire:
-        if ins.get('command') is not None:
-            reality_command.append(str_split_line)
-            reality_command.append(format_reality_command(ins['command']))
-    if len(reality_command) > 0 and str_split_line == reality_command[0]:
-        reality_command = reality_command[1:]
-    return "\n".join(reality_command)
-
-
-async def textRequest(ws, refText, sessionId=None):
-    time.sleep(0.2)
-    # 构造请求参数
-    content = {
-        "topic": 'nlu.input.text',
-        "recordId": uuid4().hex,
-        "refText": refText
-    }
-    if sessionId is not None:
-        content["sessionId"] = sessionId
-    try:
-        # 发送请求
-        print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
-        await ws.send(json.dumps(content))
-        # 接收响应
-        resp = await ws.recv()
-        # print("响应结果：%s" % resp)
-        return resp
-    except websockets.WebSocketException as exp:
-        print(exp)
-
-
-async def systemSetting(ws):
-    # 做技能级配置。
-    content = {
-        "topic": "system.settings",
-        "settings": [
-            {
-                "key": "filterSwitch",
-                "value": "off"
-            }
-        ]
-    }
-    try:
-        await ws.send(json.dumps(content))
-        resp = await ws.recv()
-        print(resp)
-    except websockets.WebSocketException as exp:
-        print(exp)
 
 
 # 执行webSocket请求，执行测试

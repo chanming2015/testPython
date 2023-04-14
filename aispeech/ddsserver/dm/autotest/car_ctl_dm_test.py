@@ -14,6 +14,8 @@ from uuid import uuid4
 import pandas as pd
 import websockets
 
+from base import format_reality_nlu, parse_reality_nlu, format_reality_command, format_reality_command_inspire, format_command_str, format_inspire_str, compare_command, str_split_line, textRequest
+
 # 设置产品ID
 PRODUCT_ID = "279606354"
 # 设置分支
@@ -55,77 +57,6 @@ index_reality_nlu = file_head.index("实际语义")
 index_reality_command = file_head.index("实际command")
 index_reality_nlg = file_head.index("实际nlg")
 index_reality_result = file_head.index("实际结果")
-
-str_split_line = "--------------------"
-
-# 解析实际语义函数
-def parse_reality_nlu(nlu):
-    reality_nlu_map = {}
-    if nlu.get("semantics") is not None:
-        for slot in nlu["semantics"]["request"]["slots"]:
-            reality_nlu_map[slot["name"]] = slot["value"]
-            if slot.get("rawvalue") is not None:
-                reality_nlu_map[slot["name"] + "_raw"] = slot["rawvalue"]
-    return reality_nlu_map
-
-
-# 格式化实际语义，换行显示
-def format_reality_nlu(nlu):
-    reality_nlu = []
-    if nlu.get("semantics") is not None:
-        for slot in nlu["semantics"]["request"]["slots"]:
-            if "intent" == slot["name"]:
-                reality_nlu.append(str_split_line)
-            else:
-                reality_nlu.append(slot["name"] + "=" + slot["value"])
-                if slot.get("rawvalue") is not None:
-                    reality_nlu.append(slot["name"] + "_raw=" + slot["rawvalue"])
-        if len(reality_nlu) > 0 and str_split_line == reality_nlu[0]:
-            reality_nlu = reality_nlu[1:]
-    return "\n".join(reality_nlu)
-
-
-# 格式化实际command，换行显示
-def format_reality_command(command):
-    reality_command = ["api=" + command["api"]]
-    if command.get("param") is not None:
-        for k, v in command["param"].items():
-            reality_command.append("param." + k + "=" + v)
-    return "\n".join(reality_command)
-
-
-# 格式化实际inspire command，换行显示
-def format_reality_command_inspire(inspire):
-    reality_command = []
-    for ins in inspire:
-        if ins.get('command') is not None:
-            reality_command.append(str_split_line)
-            reality_command.append(format_reality_command(ins['command']))
-    if len(reality_command) > 0 and str_split_line == reality_command[0]:
-        reality_command = reality_command[1:]
-    return "\n".join(reality_command)
-
-
-async def textRequest(ws, refText, sessionId=None):
-    time.sleep(0.2)
-    # 构造请求参数
-    content = {
-        "topic": 'nlu.input.text',
-        "recordId": uuid4().hex,
-        "refText": refText
-    }
-    if sessionId is not None:
-        content["sessionId"] = sessionId
-    try:
-        # 发送请求
-        print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
-        await ws.send(json.dumps(content))
-        # 接收响应
-        resp = await ws.recv()
-        # print("响应结果：%s" % resp)
-        return resp
-    except websockets.WebSocketException as exp:
-        print(exp)
 
 
 # 执行webSocket请求，执行测试
@@ -231,26 +162,37 @@ async def do_test():
 
             # 比较command
             if type(datas[index_command]) is str and datas[index_command].strip() != "":
-                if result["dm"].get("command") is None:
+                if type(datas[index_reality_command]) is not str and datas[index_reality_command].strip() == "":
                     datas[index_error_message] = "command错误，预期返回结果：有，实际返回结果：无"
                     continue
-                reality_command = result["dm"]["command"]
-                for kv_str in datas[index_command].strip().split("\n"):
-                    kvs = kv_str.split("=")
-                    reality_command_value = None
-                    if kvs[0].find(".") > 0:
-                        for k in kvs[0].split("."):
-                            if reality_command_value is None:
-                                reality_command_value = reality_command.get(k, {})
-                            else:
-                                reality_command_value = reality_command_value.get(k)
+
+                if datas[index_command].find(str_split_line) > 0:
+                    # 预期有inspire
+                    if result["dm"].get('inspire') is not None:
+                        inspire = format_inspire_str(datas[index_command])
+                        if len(inspire) != len(result["dm"].get('inspire')):
+                            datas[index_error_message] = "预期是多意图，实际是多意图，但意图数量不一致"
+                            continue
+                        else:
+                            for index, ins_expect in enumerate(inspire):
+                                if type(datas[index_error_message]) is str and len(datas[index_error_message]) > 0:
+                                    break
+                                ins_reality = inspire[index]
+                                compare_command(ins_expect, ins_reality, datas, index_error_message)
                     else:
-                        reality_command_value = reality_command.get(kvs[0])
-                    if kvs[1] != reality_command_value:
-                        datas[index_error_message] = "command错误，预期返回结果：%s，实际返回结果：%s" % (kv_str, "%s=%s" % (kvs[0], reality_command_value))
-                        break
+                        datas[index_error_message] = "预期是多意图，实际不是"
+                        continue
+                else:
+                    # 预期有command
+                    if result["dm"].get('command') is not None:
+                        expect_command = format_command_str(datas[index_command])
+                        reality_command = result["dm"].get('command')
+                        compare_command(expect_command, reality_command, datas, index_error_message)
+                    else:
+                        datas[index_error_message] = "预期有单意图command，实际不是"
+                        continue
             else:
-                if result["dm"].get("command") is not None:
+                if type(datas[index_reality_command]) is str and datas[index_reality_command].strip() != "":
                     datas[index_error_message] = "command错误，预期返回结果：无，实际返回结果：有"
                     continue
 
@@ -263,6 +205,7 @@ async def do_test():
                 if result["dm"].get("nlg") is not None and result["dm"]["nlg"] != "":
                     datas[index_error_message] = "nlg错误，预期返回结果：无，实际返回结果：有"
                     continue
+
 
 try:
     asyncio.get_event_loop().run_until_complete(do_test())
