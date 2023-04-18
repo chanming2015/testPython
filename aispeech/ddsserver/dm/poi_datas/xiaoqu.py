@@ -49,7 +49,7 @@ def get_xiaoqu_by_city_page(c_name, c_url, page):
             f_url = "https:%s/xiaoqu/" % c_url
         else:
             f_url = "https:%s/xiaoqu/pg%s/" % (c_url, page)
-        time.sleep(random.randint(20, 60))
+        time.sleep(random.randint(20, 40))
         resp = requests.get(f_url)
         city_xiqoqu_str = resp.text
         open(file_name, 'w', encoding='utf-8').write(city_xiqoqu_str)
@@ -57,6 +57,9 @@ def get_xiaoqu_by_city_page(c_name, c_url, page):
     soup = BeautifulSoup(city_xiqoqu_str, 'html.parser')
     # 获取总页数
     items = soup.find(attrs={"class":"page-box house-lst-page-box"})
+    if items is None:
+        print("%s has no page-data" % c_url)
+        return -1;
     totalPage = json.loads(items.get('page-data')).get('totalPage')
     
     result_file = c_name + "/xiaoqu.txt"
@@ -86,8 +89,9 @@ def get_xiaoqu_by_city_page(c_name, c_url, page):
 # 获取一个城市的小区数据
 def get_xiaoqu_by_city(c_name, c_url):
     totalPage = get_xiaoqu_by_city_page(c_name, c_url, 1)
-    for curPage in range(2, totalPage + 1):
-        get_xiaoqu_by_city_page(c_name, c_url, curPage)
+    if totalPage > 0:
+        for curPage in range(2, totalPage + 1):
+            get_xiaoqu_by_city_page(c_name, c_url, curPage)
 
 
 if __name__ == '__main__':
