@@ -8,7 +8,7 @@ import json
 import os
 import time
 import random
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 
 # 获取所有城市数据
@@ -49,7 +49,7 @@ def get_xiaoqu_by_city_page(c_name, c_url, page):
             f_url = "https:%s/xiaoqu/" % c_url
         else:
             f_url = "https:%s/xiaoqu/pg%s/" % (c_url, page)
-        time.sleep(random.randint(20, 40))
+        time.sleep(random.randint(10, 20))
         resp = requests.get(f_url)
         city_xiqoqu_str = resp.text
         open(file_name, 'w', encoding='utf-8').write(city_xiqoqu_str)
@@ -61,28 +61,6 @@ def get_xiaoqu_by_city_page(c_name, c_url, page):
         print("%s has no page-data" % c_url)
         return -1;
     totalPage = json.loads(items.get('page-data')).get('totalPage')
-    
-    result_file = c_name + "/xiaoqu.txt"
-    # 读取当前页小区数据
-    items = soup.find_all(attrs={"class":"clear xiaoquListItem CLICKDATA"})
-    for item in items:
-        line = []
-        for info in item.children:
-            if type(info) is Tag and ['info'] == info.get('class'):
-                for title in info.children:
-                    if type(title) is Tag:
-                        if ['title'] == title.get('class'):
-                            for it in title.children:
-                                if type(it) is Tag and ["maidian-detail"] == it.get('class'):
-                                    line.append(it.get('title'))
-                        elif ['positionInfo'] == title.get('class'):
-                            for it in title.children:
-                                if type(it) is Tag:
-                                    if ['district'] == it.get('class'):
-                                        line.append(it.get('title').replace("小区", ""))
-                                    elif ['bizcircle'] == it.get('class'):
-                                        line.append(it.get('title').replace("小区", ""))         
-        open(result_file, 'a', encoding='utf-8').write("\t".join(line) + "\n")
     
     return totalPage
 
@@ -103,7 +81,7 @@ if __name__ == '__main__':
         if not os.path.exists(k):
             os.mkdir(k)
         get_xiaoqu_by_city(k, v)
-        break
+        
     print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     
     
