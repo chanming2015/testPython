@@ -82,7 +82,7 @@ def format_command_str(command_str):
                 commands = []
                 commands += (kv[0].split("."))
                 commands.append(kv[1])
-                map_merge(command_map, format_commands(commands))
+                command_map.update(format_commands(commands))
             else:
                 command_map[kv[0]] = kv[1]
     return command_map
@@ -93,17 +93,6 @@ def format_inspire_str(command_str):
     for cm in command_str.split(str_split_line):
         command_list.append(format_command_str(cm))
     return command_list
-
-
-def map_merge(map1, map2):
-    for key in map2:
-        if key in map1:
-            if type(map1[key]) is dict:
-                map_merge(map1[key], map2[key])
-            else:
-                map1[key] = map2[key]
-        else:
-            map1[key] = map2[key]
 
 
 def compare_command(expect_command, reality_command, datas, index_error):

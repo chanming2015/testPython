@@ -34,23 +34,10 @@ if PRODUCT_ID == "" or BRANCH == "" or APIKEY == "":
 SERVER_URL = "wss://dds.dui.ai/dds/v3/%s?serviceType=websocket&productId=%s&apikey=%s&deviceName=carCtlDmTestAutoTest&communicationType=fullDuplex" % (BRANCH, PRODUCT_ID, APIKEY)
 # 读取Excel文件测试数据
 file_name = "多轮车控测试集.xlsx"
-sheet_name = "多轮车控测试集"
-lines = pd.read_excel(file_name, sheet_name=sheet_name, header=None).values.tolist()
-file_head = lines[0]
-
-# 定义测试数据列索引
-index_refText = file_head.index("测试用例")
-index_skill = file_head.index("实际技能")
-index_task = file_head.index("实际任务")
-index_intent = file_head.index("实际意图")
-index_nlu = file_head.index("实际语义")
-index_command = file_head.index("实际command")
-index_nlg = file_head.index("实际nlg")
-index_reality = file_head.index("实际结果")
-
+excel_file = pd.ExcelFile(file_name)
 
 # 执行webSocket请求，执行测试
-async def do_test():
+async def do_test(lines_data):
     session_id = uuid4().hex
     print("start time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     # 打印webSocket连接地址
@@ -59,7 +46,7 @@ async def do_test():
     async with websockets.connect(SERVER_URL, ping_interval=None, ping_timeout=None) as websocket:
         #         resp = await systemSetting(websocket)
         # 循环测试数据
-        for datas in lines[1:]:
+        for datas in lines_data[1:]:
             # 获取测试用例
             refText = datas[index_refText]
             
@@ -97,14 +84,30 @@ async def do_test():
                 if result["dm"].get("nlg") is not None:
                     datas[index_nlg] = result["dm"]["nlg"]
 
+with pd.ExcelWriter("测试结果-" + file_name) as writer:
+    # 遍历所有工作表
+    for sheet_name in excel_file.sheet_names:
+        lines = pd.read_excel(file_name, sheet_name=sheet_name, header=None).values.tolist()
+        file_head = lines[0]
+        
+        # 定义测试数据列索引
+        index_refText = file_head.index("测试用例")
+        index_skill = file_head.index("实际技能")
+        index_task = file_head.index("实际任务")
+        index_intent = file_head.index("实际意图")
+        index_nlu = file_head.index("实际语义")
+        index_command = file_head.index("实际command")
+        index_nlg = file_head.index("实际nlg")
+        index_reality = file_head.index("实际结果")
+        
+        try:
+            asyncio.get_event_loop().run_until_complete(do_test(lines))
+        except Exception as e:
+            print(e)
 
-try:
-    asyncio.get_event_loop().run_until_complete(do_test())
-except Exception as e:
-    print(e)
-
-# 回写数据结果到Excel文件
-df = pd.DataFrame(lines[1:], columns=file_head)
-df.to_excel("测试结果-" + file_name, sheet_name="%s-%s" % (PRODUCT_ID, BRANCH), index=False, header=True)
+        # 回写数据结果到Excel文件
+        df = pd.DataFrame(lines[1:], columns=file_head)
+        df.to_excel(writer, sheet_name=sheet_name, index=False, header=True)
+    
 print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 print("测试完成！")
