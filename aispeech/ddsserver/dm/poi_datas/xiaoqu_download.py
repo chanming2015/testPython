@@ -58,7 +58,7 @@ def get_xiaoqu_by_city_page(c_name, c_url, page):
     # 获取总页数
     items = soup.find(attrs={"class":"page-box house-lst-page-box"})
     if items is None:
-        print("%s has no page-data" % c_url)
+        print("%s has no page-data" % c_name)
         return -1;
     totalPage = json.loads(items.get('page-data')).get('totalPage')
     

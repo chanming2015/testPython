@@ -69,14 +69,15 @@ if __name__ == '__main__':
             # 生成xiaoqu.csv
             process_one_city(folder)    
             if os.path.exists(file_name):
-                province = cityMaps.get(folder + '市')
+                province = cityMaps.get(folder) if folder.find('自治州') > 0 else cityMaps.get(folder + '市')
                 if province is not None:
                     city_xiqoqu_list = open(file_name, encoding='utf-8').readlines()
                     for li in city_xiqoqu_list:
-                        li = "%s,%s,%s\n" % (li[:-2], province, folder)
+                        li = "%s,%s,%s\n" % (li.replace("\n", ""), province, folder)
                         # 写入最终结果文件
                         open(result_file, 'a', encoding='utf-8').write(li)
-            
+                else:
+                    print("%s has no province" % folder)
     print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     
     
