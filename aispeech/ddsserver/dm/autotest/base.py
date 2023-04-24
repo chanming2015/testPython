@@ -66,9 +66,9 @@ def format_commands(commands=[]):
     command_map = {}
     if len(commands) > 2:
         cmds = format_commands(commands[1:])
-        command_map[commands[0]] = cmds
+        command_map[commands[0].strip()] = cmds
     elif len(commands) == 2:
-        command_map[commands[0]] = commands[1]
+        command_map[commands[0].strip()] = commands[1].strip()
     return command_map
 
 

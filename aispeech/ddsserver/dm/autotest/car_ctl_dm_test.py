@@ -182,6 +182,7 @@ async def do_test(lines_data):
                 if result["dm"].get("nlg") is not None and result["dm"]["nlg"] != "":
                     datas[index_error_message] = "nlg错误，预期返回结果：无，实际返回结果：有"
                     continue
+    print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 
 
 with pd.ExcelWriter("测试结果-" + file_name) as writer:
@@ -219,5 +220,4 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
         df = pd.DataFrame(lines[1:], columns=file_head)
         df.to_excel(writer, sheet_name=sheet_name, index=False, header=True)
     
-print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 print("测试完成！")

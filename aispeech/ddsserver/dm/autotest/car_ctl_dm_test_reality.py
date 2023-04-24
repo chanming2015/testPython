@@ -83,6 +83,7 @@ async def do_test(lines_data):
                     datas[index_command] = format_reality_command_inspire(result["dm"]["inspire"])
                 if result["dm"].get("nlg") is not None:
                     datas[index_nlg] = result["dm"]["nlg"]
+    print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 
 with pd.ExcelWriter("测试结果-" + file_name) as writer:
     # 遍历所有工作表
@@ -109,5 +110,4 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
         df = pd.DataFrame(lines[1:], columns=file_head)
         df.to_excel(writer, sheet_name=sheet_name, index=False, header=True)
     
-print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 print("测试完成！")
