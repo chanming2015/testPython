@@ -139,7 +139,7 @@ async def do_test(lines_data):
 
             # 比较command
             if type(datas[index_command]) is str and datas[index_command].strip() != "":
-                if type(datas[index_reality_command]) is not str and datas[index_reality_command].strip() == "":
+                if type(datas[index_reality_command]) is not str or datas[index_reality_command].strip() == "":
                     datas[index_error_message] = "command错误，预期返回结果：有，实际返回结果：无"
                     continue
 
