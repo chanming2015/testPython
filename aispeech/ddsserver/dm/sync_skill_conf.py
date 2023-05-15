@@ -15,16 +15,19 @@ if __name__ == '__main__':
 #     productIds = ['tryProductId', '279613689', '279606354', '279615447', '279616508']
 
     productIds = ['279606354']
-    j = json.loads(open(u'C:/Users/Administrator/Desktop/长城车控技能配置.json', encoding='utf-8').read())
+    j = json.loads(open(u'C:/Users/Administrator/Desktop/车控配置/长城车控技能配置.json', encoding='utf-8').read())
 
-#     productIds = ['279611361']
-#     j = json.loads(open(u'C:/Users/Administrator/Desktop/极氪车控技能配置.json', encoding='utf-8').read())
+#     productIds = ['279611361', '279617235']
+#     j = json.loads(open(u'C:/Users/Administrator/Desktop/车控配置/极氪车控技能配置.json', encoding='utf-8').read())
 # 
 #     productIds = ['279611322', '279613565']
-#     j = json.loads(open(u'C:/Users/Administrator/Desktop/北汽车控技能配置.json', encoding='utf-8').read())
+#     j = json.loads(open(u'C:/Users/Administrator/Desktop/车控配置/北汽车控技能配置.json', encoding='utf-8').read())
 
 #     productIds = ['279610994']
-#     j = json.loads(open(u'C:/Users/Administrator/Desktop/洛轲车控技能配置.json', encoding='utf-8').read())
+#     j = json.loads(open(u'C:/Users/Administrator/Desktop/车控配置/洛轲车控技能配置.json', encoding='utf-8').read())
+    
+#     productIds = ['279614268']
+#     j = json.loads(open(u'C:/Users/Administrator/Desktop/车控配置/比亚迪车控技能配置.json', encoding='utf-8').read())
 #     
     skillIds = ['2022011900000133']
     for p in productIds:
