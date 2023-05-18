@@ -23,11 +23,13 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
         file_head = lines[0]
         
         # 定义测试数据列索引
+        index_refText = file_head.index("测试用例")
         index_expect = file_head.index("2月标注结果")
         index_error = file_head.index("错误提示")
         index_command = file_head.index("实际command")
         index_nlg = file_head.index("实际nlg")
         index_reality = file_head.index("实际结果")
+        index_reality_dm = file_head.index("实际DM")
 
         # 循环测试数据
         for datas in lines[1:]:
@@ -36,10 +38,21 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
             command = datas[index_command]
             nlg = datas[index_nlg]
             reality = datas[index_reality]
+            
+            if type(datas[index_refText]) is not str:
+                continue
+            
+            if type(expect) is not str:
+                datas[index_error] = "未标注预期"
+                continue
         
             if type(expect) is str and expect.startswith("{") and expect.endswith("}") and reality.startswith("{") and reality.endswith("}"):
                 jsob_expect = json.loads(expect)
                 jsob_reality = json.loads(reality).get('dm')
+                datas[index_reality_dm] = json.dumps(jsob_reality, ensure_ascii=False)
+                
+                if jsob_expect.get('customInnerType') is not None:
+                    jsob_expect = {"command":{"api": "sys.car.crl", "param":jsob_expect}}
         
                 if jsob_expect.get('command') is not None:
                     # 预期有command
@@ -69,17 +82,17 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
         
                 if len(jsob_expect.get('nlg')) > 0:
                     # 预期有nlg
-                    if len(jsob_expect.get('nlg')) == 0:
+                    if jsob_reality.get('nlg') is None or len(jsob_reality.get('nlg')) == 0:
                         datas[index_error] = "预期有nlg，实际没有"
                         continue
                 else:
                     # 预期没有nlg
-                    if len(jsob_expect.get('nlg')) > 0:
+                    if jsob_reality.get('nlg') is not None and len(jsob_reality.get('nlg')) > 0:
                         datas[index_error] = "预期没有nlg，实际有"
                         continue
         
             else:
-                if type(expect) is str and expect.startswith("api=sys.car.crl"):
+                if type(expect) is str and expect.startswith("api="):
                     # 预期是command
                     if type(command) is not str and type(nlg) is str:
                         datas[index_error] = "预期是command，实际是nlg"
