@@ -10,10 +10,10 @@ Created on 2023-03-25
 import json
 
 import pandas as pd
-from base import compare_command, format_command_str
+from base import compare_command, compare_command_all, format_command_str
 
 # 读取Excel文件测试数据
-file_name = "单轮车控测试集-2月对比.xlsx"
+file_name = "长城单轮车控测试集-标定对比.xlsx"
 excel_file = pd.ExcelFile(file_name)
 
 with pd.ExcelWriter("测试结果-" + file_name) as writer:
@@ -24,7 +24,7 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
         
         # 定义测试数据列索引
         index_refText = file_head.index("测试用例")
-        index_expect = file_head.index("2月标注结果")
+        index_expect = file_head.index("command")
         index_error = file_head.index("错误提示")
         index_command = file_head.index("实际command")
         index_nlg = file_head.index("实际nlg")
@@ -42,24 +42,34 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
             if type(datas[index_refText]) is not str:
                 continue
             
-            if type(expect) is not str:
-                datas[index_error] = "未标注预期"
-                continue
-        
-            if type(expect) is str and expect.startswith("{") and expect.endswith("}") and reality.startswith("{") and reality.endswith("}"):
-                jsob_expect = json.loads(expect)
+            if reality.startswith("{") and reality.endswith("}"):
                 jsob_reality = json.loads(reality).get('dm')
                 datas[index_reality_dm] = json.dumps(jsob_reality, ensure_ascii=False)
+            
+            if type(expect) is not str:
+                expect = datas[index_reality_dm]
+                datas[index_expect] = expect
+        
+            if type(expect) is str and expect.startswith("{") and expect.endswith("}"):
+                jsob_expect = json.loads(expect)
+                
+                if jsob_expect.get('dm') is not None:
+                    jsob_expect = jsob_expect.get('dm')
                 
                 if jsob_expect.get('customInnerType') is not None:
-                    jsob_expect = {"command":{"api": "sys.car.crl", "param":jsob_expect}}
+                    nlg = ""
+                    if jsob_expect.get('vague_type_cmd') is not None:
+                        nlg = "模糊指令NLG"
+                    jsob_expect = {"command":{"api": "sys.car.crl", "param":jsob_expect}, "nlg":nlg}
         
                 if jsob_expect.get('command') is not None:
                     # 预期有command
                     if jsob_reality.get('command') is not None:
                         expect_command = jsob_expect.get('command')
                         reality_command = jsob_reality.get('command')
-                        compare_command(expect_command, reality_command, datas, index_error)
+                        compare_command_all(expect_command, reality_command, datas, index_error)
+#                         if compare_command(expect_command, reality_command, datas, index_error):
+#                             datas[index_expect] = datas[index_reality_dm]
                     else:
                         datas[index_error] = "预期有command，实际不是"
                         continue
@@ -75,12 +85,13 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
                                 if type(datas[index_error]) is str and len(datas[index_error]) > 0:
                                     break
                                 ins_reality = jsob_reality.get('inspire')[index]
-                                compare_command(ins_expect, ins_reality, datas, index_error)
+                                if not compare_command_all(ins_expect.get('command'), ins_reality.get('command'), datas, index_error):
+                                    break
                     else:
                         datas[index_error] = "预期是多意图，实际不是"
                         continue
         
-                if len(jsob_expect.get('nlg')) > 0:
+                if jsob_expect.get('nlg') is not None and len(jsob_expect.get('nlg')) > 0:
                     # 预期有nlg
                     if jsob_reality.get('nlg') is None or len(jsob_reality.get('nlg')) == 0:
                         datas[index_error] = "预期有nlg，实际没有"
@@ -101,7 +112,7 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
                         command_map_expect = format_command_str(expect)
                         command_map_reality = format_command_str(command)
                         if command_map_expect != command_map_reality:
-                            compare_command(command_map_expect, command_map_reality, datas, index_error)
+                            compare_command_all(command_map_expect, command_map_reality, datas, index_error)
                 else:
                     # 预期是nlg
                     if type(nlg) is not str and type(command) is str:

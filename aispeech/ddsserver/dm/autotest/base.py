@@ -4,7 +4,7 @@ Created on 2023年4月14日
 @author: Administrator
 '''
 import json
-import time
+# import time
 from uuid import uuid4
 
 str_split_line = "--------------------"
@@ -107,8 +107,12 @@ def map_merge(map1, map2):
         else:
             map1[key] = map2[key]
 
-
-def compare_command(expect_command, reality_command, datas, index_error):
+def compare_command_all(expect_command, reality_command, datas, index_error):
+    if compare_command(expect_command, reality_command, datas, index_error):
+        compare_command(reality_command, expect_command, datas, index_error, False)
+    
+def compare_command(expect_command, reality_command, datas, index_error, formart_flag=True):
+    formart_str = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s" if formart_flag else "command错误，实际返回结果：%s=%s，预期返回结果：%s=%s"
     continue_falg = True
     for k, v in expect_command.items():
         expect_command_value = v
@@ -136,19 +140,19 @@ def compare_command(expect_command, reality_command, datas, index_error):
 #                             continue
 
                     continue_falg = False
-                    datas[index_error] = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s" % (kk, expect_command_value, kk, reality_command_value)
+                    datas[index_error] = formart_str % (kk, expect_command_value, kk, reality_command_value)
                     break
             if not continue_falg:
                 break
         elif expect_command_value != reality_command_value:
             continue_falg = False
-            datas[index_error] = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s" % (k, expect_command_value, k, reality_command_value)
+            datas[index_error] = formart_str % (k, expect_command_value, k, reality_command_value)
             break
     return continue_falg
 
 
 async def textRequest(ws, refText, sessionId=None):
-    time.sleep(0.2)
+#     time.sleep(0.2)
     # 构造请求参数
     content = {
         "topic": 'nlu.input.text',
