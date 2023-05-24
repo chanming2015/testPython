@@ -115,6 +115,8 @@ def compare_command(expect_command, reality_command, datas, index_error, formart
     formart_str = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s" if formart_flag else "command错误，实际返回结果：%s=%s，预期返回结果：%s=%s"
     continue_falg = True
     for k, v in expect_command.items():
+        if 'endSkillDm' == k or 'widget'==k:
+            continue
         expect_command_value = v
         reality_command_value = reality_command.get(k)
 
@@ -124,7 +126,7 @@ def compare_command(expect_command, reality_command, datas, index_error, formart
                 reality_command_value = reality_command.get(k, {}).get(kk)
                 if expect_command_value != reality_command_value:
                     if 'param' == kk:
-                        continue_falg = compare_command(expect_command_value, reality_command_value, datas, index_error)
+                        continue_falg = compare_command(expect_command_value, reality_command_value, datas, index_error, formart_flag)
                         if not continue_falg:
                             break
                         else:
@@ -139,6 +141,9 @@ def compare_command(expect_command, reality_command, datas, index_error, formart
 #                         if expect_command_value == reality_command.get(k, {}).get('object'):
 #                             continue
 
+                    if not formart_flag and reality_command_value is None:
+                        if 'page_raw' == kk:
+                            continue
                     continue_falg = False
                     datas[index_error] = formart_str % (kk, expect_command_value, kk, reality_command_value)
                     break
