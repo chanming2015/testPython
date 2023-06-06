@@ -109,7 +109,7 @@ def map_merge(map1, map2):
 
 def compare_command_all(expect_command, reality_command, datas, index_error):
     if compare_command(expect_command, reality_command, datas, index_error):
-        compare_command(reality_command, expect_command, datas, index_error, False)
+        return compare_command(reality_command, expect_command, datas, index_error, False)
     
 def compare_command(expect_command, reality_command, datas, index_error, formart_flag=True):
     formart_str = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s" if formart_flag else "command错误，实际返回结果：%s=%s，预期返回结果：%s=%s"

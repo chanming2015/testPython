@@ -10,7 +10,7 @@ Created on 2023-03-25
 import json
 
 import pandas as pd
-from base import compare_command, compare_command_all, format_command_str, map_merge
+from base import compare_command_all, format_command_str
 
 # 读取Excel文件测试数据
 file_name = "极氪单轮车控测试集-标定对比结果.xlsx"
@@ -24,40 +24,15 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
         
         # 定义测试数据列索引
         index_refText = file_head.index("测试用例")
-        if "command" in file_head:
-            index_expect = file_head.index("command")
-        else:
-            index_param = file_head.index("参数")
-            if "指令" in file_head:
-                index_api = file_head.index("指令")
-            elif "api" in file_head:
-                index_api = file_head.index("api")
-            index_api_type = file_head.index("指令类型")
-        
         index_error = file_head.index("错误提示")
         index_command = file_head.index("实际command")
         index_nlg = file_head.index("实际nlg")
         index_reality = file_head.index("实际结果")
-        index_reality_dm = file_head.index("实际DM")
+#         index_reality_dm = file_head.index("实际DM")
 
         # 循环测试数据
         for datas in lines[1:]:
-            if "command" in file_head:
-                expect = datas[index_expect]
-            else:
-                if type(datas[index_api]) is str:
-                    expect = {"api": datas[index_api]}
-                    if type(datas[index_api_type]) is str:
-                        if "nativeCommand" == datas[index_api_type]:
-                            expect['param'] = {"customInnerType":"nativeCommand"}
-                        elif "native" == datas[index_api_type]:
-                            expect['dataFrom'] = "native"
-                    
-                    if type(datas[index_param]) is str:
-                        map_merge(expect, format_command_str(datas[index_param]))
-                    
-                    expect = json.dumps({"command":expect}, ensure_ascii=False)
-                    
+            expect = datas[file_head.index("command")]  
             error = datas[index_error]
             command = datas[index_command]
             nlg = datas[index_nlg]
@@ -70,7 +45,7 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
                 jsob_reality = json.loads(reality).get('dm')
                 if jsob_reality.get('widget') is not None:
                     del jsob_reality['widget']
-                datas[index_reality_dm] = json.dumps(jsob_reality, ensure_ascii=False)
+#                 datas[index_reality_dm] = json.dumps(jsob_reality, ensure_ascii=False)
             
             # 没有预期时，使用实际dm作为预期
 #             if type(expect) is not str:
@@ -88,8 +63,15 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
                     if jsob_expect.get('vague_type_cmd') is not None:
                         nlg = "模糊指令NLG"
                     jsob_expect = {"command":{"api": "sys.car.crl", "param":jsob_expect}, "nlg":nlg}
+                    
+                if jsob_expect.get('api') is not None:
+                    nlg = ""
+                    if jsob_expect.get('param').get('vague_type_cmd') is not None:
+                        nlg = "模糊指令NLG"
+                    jsob_expect = {"command":jsob_expect, "nlg":nlg}
         
                 if jsob_expect.get('command') is not None:
+#                     datas[index_expect] = json.dumps(jsob_expect.get('command'), ensure_ascii=False)
                     # 预期有native
                     if jsob_expect.get('command').get('dataFrom') is not None:
                         if jsob_reality.get('dataFrom') is not None:

@@ -77,12 +77,13 @@ async def do_test(lines_data):
                     datas[index_intent] = result["dm"]["intentName"]
                 if result.get("nlu") is not None and result["nlu"].get("semantics") is not None:
                     datas[index_nlu] = format_reality_nlu(result["nlu"])
+                    datas[index_nlu_source] = result["nlu"].get('source')
                 if result["dm"].get("command") is not None:
                     datas[index_command] = format_reality_command(result["dm"]["command"])
                 elif result["dm"].get("inspire") is not None:
                     datas[index_command] = format_reality_command_inspire(result["dm"]["inspire"])
                 elif result["dm"].get("dataFrom") is not None:
-                    datas[index_command] = format_reality_command(result["dm"]) + "\ndataFrom=%s" % result["dm"].get("dataFrom")
+                    datas[index_command] = format_reality_command(result["dm"])
                 if result["dm"].get("nlg") is not None:
                     datas[index_nlg] = result["dm"]["nlg"]
     print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
@@ -115,6 +116,7 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
         index_task = file_head.index("实际任务")
         index_intent = file_head.index("实际意图")
         index_nlu = file_head.index("实际语义")
+        index_nlu_source = file_head.index("语义source")
         index_command = file_head.index("实际command")
         index_nlg = file_head.index("实际nlg")
         index_reality = file_head.index("实际结果")
