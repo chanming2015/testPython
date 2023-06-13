@@ -56,6 +56,9 @@ def format_reality_command_inspire(inspire):
         if ins.get('command') is not None:
             reality_command.append(str_split_line)
             reality_command.append(format_reality_command(ins['command']))
+        elif ins.get('api') is not None and ins.get('param') is not None:
+            reality_command.append(str_split_line)
+            reality_command.append(format_reality_command(ins))
     if len(reality_command) > 0 and str_split_line == reality_command[0]:
         reality_command = reality_command[1:]
     return "\n".join(reality_command)
@@ -76,6 +79,7 @@ def format_command_str(command_str):
     command_map = {}
     command_line = command_str.split("\n")
     for line in command_line:
+        line = line.strip()
         if not line.startswith("api=") and not line.startswith("param."):
             line = "param." + line
         kv = line.split("=")
@@ -112,10 +116,10 @@ def compare_command_all(expect_command, reality_command, datas, index_error):
         return compare_command(reality_command, expect_command, datas, index_error, False)
     
 def compare_command(expect_command, reality_command, datas, index_error, formart_flag=True):
-    formart_str = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s" if formart_flag else "command错误，实际返回结果：%s=%s，预期返回结果：%s=%s"
+    formart_str = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s"
     continue_falg = True
     for k, v in expect_command.items():
-        if 'endSkillDm' == k or 'widget'==k:
+        if 'endSkillDm' == k or 'widget' == k:
             continue
         expect_command_value = v
         reality_command_value = reality_command.get(k)
@@ -141,17 +145,23 @@ def compare_command(expect_command, reality_command, datas, index_error, formart
 #                         if expect_command_value == reality_command.get(k, {}).get('object'):
 #                             continue
 
-                    if not formart_flag and reality_command_value is None:
-                        if 'page_raw' == kk:
-                            continue
+                    if kk.find('_raw') > 0:
+                        continue
+                    
                     continue_falg = False
-                    datas[index_error] = formart_str % (kk, expect_command_value, kk, reality_command_value)
+                    if formart_flag:
+                        datas[index_error] = formart_str % (kk, expect_command_value, kk, reality_command_value)
+                    else:
+                        datas[index_error] = formart_str % (kk, reality_command_value, kk, expect_command_value)
                     break
             if not continue_falg:
                 break
         elif expect_command_value != reality_command_value:
             continue_falg = False
-            datas[index_error] = formart_str % (k, expect_command_value, k, reality_command_value)
+            if formart_flag:
+                datas[index_error] = formart_str % (k, expect_command_value, k, reality_command_value)
+            else:
+                datas[index_error] = formart_str % (k, reality_command_value, k, expect_command_value)
             break
     return continue_falg
 
