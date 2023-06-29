@@ -44,7 +44,7 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
             nlg = datas[index_nlg]
             reality = datas[index_reality]
             
-            if type(datas[index_refText]) is not str:
+            if type(datas[index_refText]) is not str or type(reality) is not str:
                 continue
 
 #             print(datas[index_refText])
@@ -68,8 +68,11 @@ with pd.ExcelWriter("测试结果-" + file_name) as writer:
                             datas[file_head.index("实际param1")] = json.dumps(cmd['param'], ensure_ascii=False)
                     
             
-            if type(expect) is str and expect.startswith("api="):
+            if type(expect) is str: 
                 # 预期有指令
+                if expect.find("api=") < 0:
+                    expect = "api=sys.car.crl\nparam.customInnerType=nativeCommand\n" + expect
+                
                 if expect.find(str_split_line) > 0:
                     # 预期是多意图指令
                     if type(command) is str and command.find(str_split_line) > 0:

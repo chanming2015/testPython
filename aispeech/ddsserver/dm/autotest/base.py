@@ -145,7 +145,7 @@ def compare_command(expect_command, reality_command, datas, index_error, formart
 #                         if expect_command_value == reality_command.get(k, {}).get('object'):
 #                             continue
 
-                    if kk.find('_raw') > 0:
+                    if 'duiWidget' == kk or kk.find('_raw') > 0:
                         continue
                     
                     continue_falg = False
