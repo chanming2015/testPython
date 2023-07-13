@@ -22,7 +22,7 @@ def compare_command_str(expect_str, reality_str, datas, index_error):
     command_map_reality = format_command_str(reality_str)
     return compare_command_all(command_map_expect, command_map_reality, datas, index_error)
 
-with pd.ExcelWriter("测试结果-" + file_name) as writer:
+with pd.ExcelWriter("结果-" + file_name) as writer:
     # 遍历所有工作表
     for sheet_name in excel_file.sheet_names:
         lines = pd.read_excel(file_name, sheet_name=sheet_name, header=None).values.tolist()

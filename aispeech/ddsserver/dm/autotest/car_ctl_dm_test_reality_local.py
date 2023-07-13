@@ -98,6 +98,6 @@ do_test()
 
 # 回写数据结果到Excel文件
 df = pd.DataFrame(lines[1:], columns=file_head)
-df.to_excel("测试结果本地对比-" + file_name, sheet_name=sheet_name, index=False, header=True)
+df.to_excel("本地对比-" + file_name, sheet_name=sheet_name, index=False, header=True)
 print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 print("测试完成！")

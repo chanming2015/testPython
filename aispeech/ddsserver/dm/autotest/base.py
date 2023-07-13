@@ -4,6 +4,7 @@ Created on 2023年4月14日
 @author: Administrator
 '''
 import json
+import websockets
 # import time
 from uuid import uuid4
 
@@ -118,6 +119,8 @@ def compare_command_all(expect_command, reality_command, datas, index_error):
 def compare_command(expect_command, reality_command, datas, index_error, formart_flag=True):
     formart_str = "command错误，预期返回结果：%s=%s，实际返回结果：%s=%s"
     continue_falg = True
+    if type(expect_command) is not dict:
+        expect_command = {}
     for k, v in expect_command.items():
         if 'endSkillDm' == k or 'widget' == k:
             continue
@@ -185,7 +188,7 @@ async def textRequest(ws, refText, sessionId=None):
         # print("响应结果：%s" % resp)
         return resp
     except websockets.WebSocketException as exp:
-        print(exp)
+        print("textRequest() recordId: %s ,WebSocketException: %s" % (content['recordId'],exp))
 
 
 async def systemSetting(ws):
@@ -204,4 +207,4 @@ async def systemSetting(ws):
         resp = await ws.recv()
         print(resp)
     except websockets.WebSocketException as exp:
-        print(exp)
+        print("systemSetting() WebSocketException: %s" % exp)

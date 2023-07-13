@@ -51,7 +51,7 @@ async def do_test(lines_data):
             refText = datas[index_refText]
             
             # 遇到空白行，表示一轮测试结束，下一轮测试开始（使用新的sessionId）
-            if refText is None or refText == "" or type(refText) != str:
+            if refText is None or type(refText) != str or len(refText) <= 2:
                 session_id = uuid4().hex
                 continue
             
@@ -63,6 +63,8 @@ async def do_test(lines_data):
                 resp = datas[index_reality]
             else:
                 resp = await textRequest(websocket, refText, session_id)
+                if resp is None:
+                    break
             # 解析测试返回结果
             result = json.loads(resp)
 
@@ -107,6 +109,7 @@ async def do_task(lines_data):
 with pd.ExcelWriter("测试结果-" + file_name) as writer:
     # 遍历所有工作表
     for sheet_name in excel_file.sheet_names:
+        print(sheet_name)
         lines = pd.read_excel(file_name, sheet_name=sheet_name, header=None).values.tolist()
         file_head = lines[0]
         
