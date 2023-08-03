@@ -48,9 +48,13 @@ with pd.ExcelWriter("结果-" + file_name) as writer:
                 continue
 
 #             print(datas[index_refText])
+            # 默认先置空错误提示
+            datas[index_error] = ""
             
             if reality.startswith("{") and reality.endswith("}"):
                 jsob_reality = json.loads(reality).get('dm')
+                if jsob_reality.get('error') is not None:
+                    datas[index_error] = "实际 DM ERROR"
                 if jsob_reality.get('widget') is not None:
                     del jsob_reality['widget']
                 

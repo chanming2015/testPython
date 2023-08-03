@@ -67,7 +67,7 @@ def do_test():
                 session_id = uuid4().hex
                 continue
         
-        if type(datas[index_local]) is str:
+        if type(datas[index_local]) is str or type(datas[index_reality]) is not str:
             continue
         print("测试用例：%s" % refText)
         reality = json.loads(datas[index_reality])
@@ -94,10 +94,14 @@ def do_test():
 
             # 写入测试结果
             datas[index_local] = json.dumps(result, ensure_ascii=False)
-do_test()
-
-# 回写数据结果到Excel文件
-df = pd.DataFrame(lines[1:], columns=file_head)
-df.to_excel("本地对比-" + file_name, sheet_name=sheet_name, index=False, header=True)
+        
+with pd.ExcelWriter("本地对比-" + file_name) as writer:
+    try:
+        do_test()
+    except Exception as e:
+        print(e)
+    # 回写数据结果到Excel文件
+    df = pd.DataFrame(lines[1:], columns=file_head)
+    df.to_excel(writer, sheet_name=sheet_name, index=False, header=True)
 print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 print("测试完成！")
