@@ -34,7 +34,7 @@ SERVER_URL = "wss://dds.dui.ai/dds/v3/%s?serviceType=websocket&productId=%s&apik
 file_name = "多轮车控测试集.xlsx"
 excel_file = pd.ExcelFile(file_name)
 # True：单轮测试；False：多轮测试
-is_single_round_test = False if file_name.find('多轮') > 0 else True
+is_single_round_test = False if file_name.find('多轮') > -1 else True
 
 # 执行webSocket请求，执行测试
 async def do_test(lines_data):
@@ -51,7 +51,7 @@ async def do_test(lines_data):
             refText = datas[index_refText]
             
             # 遇到空白行，表示一轮测试结束，下一轮测试开始（使用新的sessionId）
-            if refText is None or type(refText) != str or len(refText) <= 2:
+            if refText is None or type(refText) != str:
                 session_id = uuid4().hex
                 continue
             

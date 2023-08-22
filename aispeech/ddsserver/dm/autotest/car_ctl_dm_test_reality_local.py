@@ -23,7 +23,7 @@ lines = pd.read_excel(file_name, sheet_name=sheet_name, header=None).values.toli
 file_head = lines[0]
 
 # True：单轮测试；False：多轮测试
-is_single_round_test = False if file_name.find('多轮') > 0 else True
+is_single_round_test = False if file_name.find('多轮') > -1 else True
 
 # 定义测试数据列索引
 index_refText = file_head.index("测试用例")
