@@ -78,19 +78,25 @@ def do_test():
             # 解析测试返回结果
             result = json.loads(resp)
             
-            result["dm"] = {}
-            if result["response"].get("execute") is not None:
-                result["dm"]["command"] = format_local_command(result["response"]["execute"])
-            elif result["response"].get("inspire") is not None:
-                result["dm"]["inspire"] = result["response"].get("inspire")
-            if result["response"].get("speak") is not None:
-                result["dm"]["nlg"] = result["response"]["speak"]["text"]
+            if result.get("dm") is None:
+                result["dm"] = {}
+            
+            if result.get("response") is not None:
+                if result["response"].get("execute") is not None:
+                    result["dm"]["command"] = format_local_command(result["response"]["execute"])
+                elif result["response"].get("inspire") is not None:
+                    result["dm"]["inspire"] = result["response"].get("inspire")
+                if result["response"].get("speak") is not None:
+                    result["dm"]["nlg"] = result["response"]["speak"]["text"]
+                    
             if result["dm"].get("command") is not None:
                 datas[index_local_command] = format_reality_command(result["dm"]["command"])
             elif result["dm"].get("inspire") is not None:
                 datas[index_local_command] = format_reality_command_inspire(result["dm"]["inspire"])
             if result["dm"].get("nlg") is not None:
                 datas[index_local_nlg] = result["dm"]["nlg"]
+            if result["dm"].get("speak") is not None:
+                datas[index_local_nlg] = result["dm"]["speak"]["text"]
 
             # 写入测试结果
             datas[index_local] = json.dumps(result, ensure_ascii=False)

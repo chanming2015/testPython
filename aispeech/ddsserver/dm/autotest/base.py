@@ -186,9 +186,13 @@ async def textRequest(ws, refText, sessionId=None):
         # 接收响应
         resp = await ws.recv()
         # print("响应结果：%s" % resp)
+        count = 0
+        while(count < 3 and resp.find('"topic":"dm.output"') < 0):
+            count += 1
+            resp = await ws.recv()
         return resp
     except websockets.WebSocketException as exp:
-        print("textRequest() recordId: %s ,WebSocketException: %s" % (content['recordId'],exp))
+        print("textRequest() recordId: %s ,WebSocketException: %s" % (content['recordId'], exp))
 
 
 async def systemSetting(ws):
