@@ -17,8 +17,9 @@ import requests
 # 定义测试服务地址
 SERVER_URL = "http://localhost:8080/v2/lyra/webhook/dsk/car/ctl"
 # 读取Excel文件测试数据
-file_name = "长城多轮车控测试集-标定对比.xlsx"
-sheet_name = "279606354-car_ctl_beta_test"
+pid = "279606354"
+file_name = "长城单轮车控测试集-标定对比.xlsx"
+sheet_name = pid + "-car_ctl_beta_test"
 lines = pd.read_excel(file_name, sheet_name=sheet_name, header=None).values.tolist()
 file_head = lines[0]
 
@@ -35,7 +36,7 @@ index_local = file_head.index("本地结果")
 
 def textRequest(refText, slots, sessionId=None):
     # 构造请求参数
-    content = {"request":{"inputs":[{"input":refText}], "task":"车载控制", "slots":slots}, "session":{"sessionId":sessionId}, "context":{"skill":{"skillId":"2022011900000133"}, "product":{"productId":"279606354"}}}
+    content = {"request":{"inputs":[{"input":refText}], "task":"车载控制", "slots":slots}, "session":{"sessionId":sessionId}, "context":{"skill":{"skillId":"2022011900000133"}, "product":{"productId":pid}}}
     resp = requests.post(SERVER_URL, json=content)
     return resp.text
 

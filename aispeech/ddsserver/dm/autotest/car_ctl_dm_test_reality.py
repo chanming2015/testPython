@@ -43,7 +43,7 @@ async def do_test(lines_data):
     # 打印webSocket连接地址
     print("webSocket连接地址：%s" % SERVER_URL)
     # 创建webSocket连接
-    async with websockets.connect(SERVER_URL, ping_interval=None, ping_timeout=None) as websocket:
+    async with websockets.connect(SERVER_URL, ping_timeout=None) as websocket:
         #         resp = await systemSetting(websocket)
         # 循环测试数据
         for datas in lines_data:
@@ -91,7 +91,7 @@ async def do_test(lines_data):
     print("end time: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 
 async def do_task(lines_data):
-    task_size = 3
+    task_size = 4
     page_size = int(len(lines_data) / task_size)
     tasks = []
     if page_size > 20:

@@ -5,10 +5,12 @@ Created on 2023年4月14日
 '''
 import json
 import websockets
+import asyncio
 # import time
 from uuid import uuid4
 
 str_split_line = "--------------------"
+asyncio_timeout = 300
 
 
 # 解析实际语义函数
@@ -184,16 +186,43 @@ async def textRequest(ws, refText, sessionId=None):
         print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
         await ws.send(json.dumps(content))
         # 接收响应
-        resp = await ws.recv()
+#         resp = await ws.recv()
+        resp = await asyncio.wait_for(ws.recv(), timeout=asyncio_timeout)
         # print("响应结果：%s" % resp)
         count = 0
         while(count < 3 and resp.find('"topic":"dm.output"') < 0):
             count += 1
-            resp = await ws.recv()
+#             resp = await ws.recv()
+            resp = await asyncio.wait_for(ws.recv(), timeout=asyncio_timeout)
+            # print("响应结果：%s" % resp)
         return resp
     except websockets.WebSocketException as exp:
         print("textRequest() recordId: %s ,WebSocketException: %s" % (content['recordId'], exp))
 
+async def triggerMusicSkill(ws, jsob, sessionId=None):
+#     time.sleep(0.2)
+    # 构造请求参数
+    content = {
+        "recordId": uuid4().hex,
+        "skill": "音乐技能",
+        "task": "音乐",
+        "intent": "端侧数据返回",
+        "topic": "dm.input.intent",
+        "slots": jsob
+    }
+
+    if sessionId is not None:
+        content["sessionId"] = sessionId
+    try:
+        # 发送请求
+        print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
+        await ws.send(json.dumps(content))
+        # 接收响应
+        resp = await ws.recv()
+        print("响应结果：%s" % resp)
+        return resp
+    except websockets.WebSocketException as exp:
+        print("trigger() recordId: %s ,WebSocketException: %s" % (content['recordId'], exp))
 
 async def systemSetting(ws):
     # 做技能级配置。
@@ -207,6 +236,8 @@ async def systemSetting(ws):
         ]
     }
     try:
+        # 发送请求
+        print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
         await ws.send(json.dumps(content))
         resp = await ws.recv()
         print(resp)
