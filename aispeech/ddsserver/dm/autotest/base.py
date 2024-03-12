@@ -10,7 +10,7 @@ import asyncio
 from uuid import uuid4
 
 str_split_line = "--------------------"
-asyncio_timeout = 300
+asyncio_timeout = 500
 
 
 # 解析实际语义函数
@@ -170,76 +170,59 @@ def compare_command(expect_command, reality_command, datas, index_error, formart
             break
     return continue_falg
 
+async def send_request_and_wait_for_response(ws, content, expect_topic='dm.output', max_attempts=3, timeout=asyncio_timeout):
+    """
+    发送WebSocket请求并等待特定主题的响应。
+    """
+    print(f"请求参数：{json.dumps(content, ensure_ascii=False)}")
+    await ws.send(json.dumps(content))
+    attempt = 0
+    while attempt < max_attempts:
+        try:
+            resp = await asyncio.wait_for(ws.recv(), timeout=timeout)
+            if expect_topic in resp:
+                return resp
+            attempt += 1
+        except (websockets.WebSocketException, asyncio.TimeoutError) as exp:
+            print(f"{type(exp).__name__} in send_request_and_wait_for_response(): {exp}")
+            break  # 或者根据需要处理异常
+    return None  # 或者抛出一个异常
 
 async def textRequest(ws, refText, sessionId=None):
-#     time.sleep(0.2)
-    # 构造请求参数
     content = {
         "topic": 'nlu.input.text',
         "recordId": uuid4().hex,
-        "refText": refText
+        "refText": refText,
+        **({"sessionId": sessionId} if sessionId is not None else {})
     }
-    if sessionId is not None:
-        content["sessionId"] = sessionId
-    try:
-        # 发送请求
-        print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
-        await ws.send(json.dumps(content))
-        # 接收响应
-#         resp = await ws.recv()
-        resp = await asyncio.wait_for(ws.recv(), timeout=asyncio_timeout)
-        # print("响应结果：%s" % resp)
-        count = 0
-        while(count < 3 and resp.find('"topic":"dm.output"') < 0):
-            count += 1
-#             resp = await ws.recv()
-            resp = await asyncio.wait_for(ws.recv(), timeout=asyncio_timeout)
-            # print("响应结果：%s" % resp)
-        return resp
-    except websockets.WebSocketException as exp:
-        print("textRequest() recordId: %s ,WebSocketException: %s" % (content['recordId'], exp))
+    return await send_request_and_wait_for_response(ws, content)
+
+async def dmInputData(ws, nativeApi, extraJson, sessionId=None):
+    content = {
+        "topic": 'dm.input.data',
+        "recordId": uuid4().hex,
+        "nativeApi": nativeApi,
+        "extra":extraJson,
+        **({"sessionId": sessionId} if sessionId is not None else {})
+    }
+    return await send_request_and_wait_for_response(ws, content)
 
 async def triggerMusicSkill(ws, jsob, sessionId=None):
-#     time.sleep(0.2)
-    # 构造请求参数
     content = {
         "recordId": uuid4().hex,
         "skill": "音乐技能",
         "task": "音乐",
         "intent": "端侧数据返回",
         "topic": "dm.input.intent",
-        "slots": jsob
+        "slots": jsob,
+        **({"sessionId": sessionId} if sessionId is not None else {})
     }
-
-    if sessionId is not None:
-        content["sessionId"] = sessionId
-    try:
-        # 发送请求
-        print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
-        await ws.send(json.dumps(content))
-        # 接收响应
-        resp = await ws.recv()
-        print("响应结果：%s" % resp)
-        return resp
-    except websockets.WebSocketException as exp:
-        print("trigger() recordId: %s ,WebSocketException: %s" % (content['recordId'], exp))
+    return await send_request_and_wait_for_response(ws, content)
 
 async def systemSetting(ws):
-    # 做技能级配置。
     content = {
         "topic": "system.settings",
-        "settings": [
-            {
-                "key": "filterSwitch",
-                "value": "off"
-            }
-        ]
+        "settings": [{"key": "filterSwitch", "value": "off"}]
     }
-    try:
-        # 发送请求
-        print("请求参数：%s" % json.dumps(content, ensure_ascii=False))
-        await ws.send(json.dumps(content))
-        resp = await ws.recv()
-        print(resp)
-    except websockets.WebSocketException as exp:
-        print("systemSetting() WebSocketException: %s" % exp)
+    return await send_request_and_wait_for_response(ws, content, expect_topic='system.settings.response')
+
