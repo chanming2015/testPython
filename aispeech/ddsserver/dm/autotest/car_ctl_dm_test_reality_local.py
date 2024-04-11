@@ -36,14 +36,14 @@ index_local = file_head.index("本地结果")
 
 def textRequest(refText, slots, sessionId=None):
     # 构造请求参数
-    content = {"request":{"inputs":[{"input":refText}], "task":"车载控制", "slots":slots}, "session":{"sessionId":sessionId}, "context":{"skill":{"skillId":"2022011900000133"}, "product":{"productId":pid}}}
+    content = {"request":{"inputs":[{"input":refText, "confidence": 1, "slots":slots}], "task":"车载控制", "slots":slots, "requestBodyType": "nluResult", "communicateType": "fullduplex"}, "session":{"sessionId":sessionId}, "context":{"skill":{"skillId":"2022011900000133"}, "product":{"productId":pid}}}
     resp = requests.post(SERVER_URL, json=content)
     return resp.text
 
 
 def format_local_command(command):
     command_out = {}
-    command_out["api"] = command["url"].replace("nativecmd://", "")
+    command_out["api"] = command["url"].replace("sysnativecmd://", "").replace("nativecmd://", "")
     command_out["param"] = command.get("args")
     return command_out
 

@@ -48,7 +48,7 @@ def format_reality_command(command):
     reality_command = ["api=" + command["api"]]
     if command.get("param") is not None:
         for k, v in command["param"].items():
-            reality_command.append("param." + k + "=" + v)
+            reality_command.append("param." + k + "=" + str(v))
     return "\n".join(reality_command)
 
 
@@ -170,7 +170,7 @@ def compare_command(expect_command, reality_command, datas, index_error, formart
             break
     return continue_falg
 
-async def send_request_and_wait_for_response(ws, content, expect_topic='dm.output', max_attempts=3, timeout=asyncio_timeout):
+async def send_request_and_wait_for_response(ws, content, expect_topic='dm.output', max_attempts=30, timeout=asyncio_timeout):
     """
     发送WebSocket请求并等待特定主题的响应。
     """
@@ -180,7 +180,7 @@ async def send_request_and_wait_for_response(ws, content, expect_topic='dm.outpu
     while attempt < max_attempts:
         try:
             resp = await asyncio.wait_for(ws.recv(), timeout=timeout)
-            if expect_topic in resp:
+            if expect_topic in resp and content['sessionId'] in resp:
                 return resp
             attempt += 1
         except (websockets.WebSocketException, asyncio.TimeoutError) as exp:
